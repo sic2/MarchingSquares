@@ -1,0 +1,47 @@
+/* E. Angel, Interactive Computer Graphics */
+/* A Top-Down Approach with OpenGL, Third Edition */
+/* Addison-Wesley Longman, 2003 */
+
+/* Genarates contours using marching squares */
+#pragma once
+
+#ifdef __APPLE__
+#include <GLUT/glut.h>
+#else
+#include <GL/glut.h>
+#endif
+
+/* region size */
+#define X_MAX 1.0
+#define Y_MAX 1.0
+#define X_MIN -1.0
+#define Y_MIN -1.0
+
+class MarchingSquares
+{
+public:
+	inline MarchingSquares(int x, int y)
+	{
+		_xCells = x + 100; // XXX - offset
+		_yCells = y + 100;
+		_threshold = 0;
+	}
+
+	virtual ~MarchingSquares() {}
+
+	int cell(double a, double b, double c , double d);
+	void lines(int num, int i, int j, double a, double b, double c, double d);
+
+	void setThreshold(double threshold) { this->_threshold = threshold; }
+
+private:
+	int _xCells;
+	int _yCells;
+
+	/* contour value */
+	double _threshold;
+
+	void draw_one(int num, int i, int j, double a, double b, double c, double d);
+	void draw_adjacent(int num, int i, int j, double a, double b, double c, double d);
+	void draw_opposite(int num, int i, int j, double a, double b, double c, double d);
+};
