@@ -3,7 +3,6 @@
 /* Addison-Wesley Longman, 2003 */
 
 /* Genarates contours using marching squares */
-
 #include "MarchingSquares.h"
 
 int MarchingSquares::cell(double a, double b, double c , double d)
@@ -71,10 +70,11 @@ void MarchingSquares::draw_one(int num, int i, int j, double a, double b, double
 	  break;
 	}
   glBegin(GL_LINES);
-	glVertex2d(x1, y1);
-	glVertex2d(x2, y2);
+	glVertex3d(x1, y1, 0);
+	glVertex3d(x2, y2, 0);
   glEnd();
 }
+
 void MarchingSquares::draw_adjacent(int num, int i, int j, double a, double b, double c, double d)
 {
   double x1, y1, x2, y2;
@@ -100,8 +100,8 @@ void MarchingSquares::draw_adjacent(int num, int i, int j, double a, double b, d
 	  break;
   }
   glBegin(GL_LINES);
-    glVertex2d(x1, y1);
-    glVertex2d(x2, y2);
+    glVertex3d(x1, y1, 0);
+    glVertex3d(x2, y2, 0);
   glEnd();
 
 }
@@ -137,10 +137,11 @@ void MarchingSquares::draw_opposite(int num, int i, int j, double a, double b, d
 	  y4=oy+dy*(this->_threshold-b)/(c-b);
 	  break;
   }
+
   glBegin(GL_LINES);
-    glVertex2d(x1, y1);
-    glVertex2d(x2, y2);
-    glVertex2d(x3, y3);
-    glVertex2d(x4, y4);
+    glVertex3d(x1, y1, 0);
+    glVertex3d(x2, y2, 0);
+    glVertex3d(x3, y3, 0);
+    glVertex3d(x4, y4, 0);
   glEnd();
 }

@@ -1,5 +1,6 @@
 #include "MarchingSquares.h"
 #include "DataAcquisition.h"
+#include "Palette.h"
 
 #ifdef __APPLE__
 #include <GLUT/glut.h>
@@ -9,6 +10,7 @@
 
 #include <sstream>
 
+#define ESC 27
 #define PLUS_SIGN 43
 #define MINUS_SIGN 45
 
@@ -19,18 +21,28 @@ int rows;
 int columns;
 
 MarchingSquares* marchingSquares;
+Palette* palette;
 
-int accuracy;
+int numberContours;
 int minHeight;
 int maxHeight;
+
+Color* colorScale;
 
 /*
 * Preprocessors
 */
+// Callbacks
 void display();
 void myReshape(int w, int h);
+void keyboardFunc(unsigned char key, int x, int y);
+void specialFunc(int key, int x, int y);
+void idleFunc();
+
+// User defined
 void setup();
 void cleanup();
+void shutDown();
 void writeBitmapString(void *font, std::string str);
 std::string integerToString(int value);
 
@@ -44,10 +56,18 @@ void display()
 
 	int i,j;
 	int c;
-	int numberContours = 0;
-	// TODO - process for different heights
 	// set minHeight and maxHeight be looking at file
-	for(int h = minHeight; h < maxHeight; h = h + accuracy)
+	//double redNess = 0.00;
+	//double greenNess = 1.00;
+
+	double red = (colorScale->redBase + colorScale->redTop) / 2.0;
+	double green = (colorScale->greenBase + colorScale->greenTop) / 2.0;
+	double blue = (colorScale->blueBase + colorScale->blueTop) / 2.0;
+
+	double heightOffset = (maxHeight - minHeight) / (numberContours * 1.0);
+	double offset = 1 / (1.0 * (maxHeight - minHeight) / (1.0 * heightOffset));
+	
+	for(int h = minHeight; h < maxHeight; h = h + heightOffset)
 	{
 		marchingSquares->setThreshold(h);
 		for(i = 0; i < columns; i++) for (j = 0; j < rows; j++) 
@@ -55,10 +75,13 @@ void display()
 			if (i + 1 != columns && j + 1 != rows)
 			{
 				c = marchingSquares->cell(data[i][j], data[i+1][j], data[i+1][j+1], data[i][j+1]);
+				glColor3f(red, green, blue);
 				marchingSquares->lines(c,i,j,data[i][j], data[i+1][j], data[i+1][j+1], data[i][j+1]);
 			}
 		}
-		numberContours++;
+
+		red += offset;
+		green -= offset;
 	} // outer for loop
 
 	// Display the number of countours currently displayed
@@ -92,31 +115,75 @@ void keyboardFunc(unsigned char key, int x, int y)
 	{
 		case PLUS_SIGN:
 		{
-			accuracy -= ACCURACY_OFFSET;
+			numberContours++;
 		}
 		break;
 		case MINUS_SIGN:
 		{
-			accuracy += ACCURACY_OFFSET;
+			numberContours--;
+			if (numberContours == 0)
+			{
+				numberContours++;
+			}
 		}
 		break;
+		case ESC:
+		{
+			printf("Shutting down\n"); 
+			shutDown();
+		}
 		default:
 		break;
 	} // end switch
 	glutPostRedisplay();
 }
 
+
+void specialFunc(int key, int x, int y)
+{
+	switch(key)
+	{
+		// Change color scale
+		case GLUT_KEY_LEFT:
+			palette->nextColorScale(); // TODO - prev color scale
+		break;
+		case GLUT_KEY_RIGHT:
+			palette->nextColorScale();
+		break;
+		default:
+			printf("Unused special key %d pressed\n", key);
+		break;
+	}
+	
+	glutPostRedisplay();
+}
+
+void idleFunc()
+{	
+	// TODO - rotate
+	glutPostRedisplay();
+}
+
 void setup()
 {
-	accuracy = 100;
+	numberContours = 10;
 	minHeight = 0;
 	maxHeight = 800;
+
+	colorScale = palette->nextColorScale(); // FIXME - delete prev allocated color 
 }
 
 void cleanup()
 {
 	DataAcquisition::freeData(data, columns);
 	delete marchingSquares;
+	delete palette;
+}
+
+void shutDown()
+{
+	cleanup();
+	exit(EXIT_SUCCESS);
 }
 
 /*
@@ -155,6 +222,7 @@ int main(int argc, char **argv)
 	std::string fileName = "Data/honolulu_raw.txt"; //argv[1];
 	data = DataAcquisition::getData(fileName, &rows, &columns);
 	marchingSquares = new MarchingSquares(columns, rows);
+	palette = new Palette();
 
 	setup();
 	glutInit(&argc, argv);
@@ -166,6 +234,8 @@ int main(int argc, char **argv)
 	glutReshapeFunc(myReshape);
 	glutDisplayFunc(display);
 	glutKeyboardFunc(keyboardFunc);
+	glutSpecialFunc(specialFunc);
+	glutIdleFunc(idleFunc);
 
 	glClearColor(0.0,0.0,0.0,1.0);
 	glColor3f(1.0,1.0,1.0);
