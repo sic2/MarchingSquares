@@ -11,6 +11,9 @@
 
 #include <sstream>
 
+#include <google/profiler.h>
+#define PROFILE_FILE "Profiling/squareShift.prof"
+
 /*
 * Key bindings
 */
@@ -343,12 +346,13 @@ int main(int argc, char **argv)
 		printf("[ ERROR ] :: Please provide a data set file\n");
 		//return 1;  // TODO - uncomment
 	}
-
+ProfilerStart(PROFILE_FILE);
 	// Get data before starting any graphics
 	std::string fileName = "Data/honolulu_raw.txt"; //argv[1];
 	data = DataAcquisition::getData(fileName, &rows, &columns);
 	marchingSquares = new MarchingSquares(columns, rows);
 	palette = new Palette();
+ProfilerStop();
 
 	setup();
 	glutInit(&argc, argv);

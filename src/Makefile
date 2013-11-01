@@ -15,9 +15,10 @@ program_LIBRARIES :=
 CPPFLAGS += $(foreach includedir,$(program_INCLUDE_DIRS),-I$(includedir))
 LDFLAGS += $(foreach librarydir,$(program_LIBRARY_DIRS),-L$(librarydir))
 LDFLAGS += $(foreach library,$(program_LIBRARIES),-l$(library))
-CXXFLAGS = -Wall -g
+CXXFLAGS = -Wall -g -lprofiler
 # GL Flags
-GLFLAGS = -framework OpenGL -framework GLUT
+GLFLAGS = -framework OpenGL -framework GLUT 
+
 
 .PHONY: all clean distclean
 
@@ -29,5 +30,6 @@ $(program_NAME): $(program_OBJS)
 clean:
 	@- $(RM) $(program_NAME)
 	@- $(RM) $(program_OBJS)
+	@- $(RM) *.prof # removes any profiling files
 
 distclean: clean
