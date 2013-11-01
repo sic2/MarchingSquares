@@ -1,7 +1,8 @@
-#include "MarchingSquares.h"
 #include "DataAcquisition.h"
 #include "Palette.h"
 #include "Helper.h"
+
+#include "Contours.h"
 
 #ifdef __APPLE__
 #include <GLUT/glut.h>
@@ -37,7 +38,7 @@
 #define OPEN_ANGULAR_SIGN 60
 #define CLOSE_ANGULAR_SIGN 62
 
-#define RADIANS_ACCURACY 0.2
+#define RADIANS_ACCURACY 0.1
 #define SCALING_FACTOR 0.8
 #define RADIANS_TO_DEGREES 57.2957795 // FIXME - use unsigned int for efficiency?
 
@@ -45,7 +46,8 @@ int** data;
 int rows;
 int columns;
 
-MarchingSquares* marchingSquares;
+//MarchingSquares* marchingSquares;
+Contours* contours;
 Palette* palette;
 
 int numberContours;
@@ -93,34 +95,10 @@ void display()
 	glRotatef(RADIANS_TO_DEGREES * zDegrees, 0.0, 0.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	int i,j;
-	int c;
-	//  TODO set minHeight and maxHeight be looking at file
-	double red = (colorScale->redBase + colorScale->redTop) / 2.0;
-	double green = (colorScale->greenBase + colorScale->greenTop) / 2.0;
-	double blue = (colorScale->blueBase + colorScale->blueTop) / 2.0;
-
-	double heightOffset = (maxHeight - minHeight) / (numberContours * 1.0);
-	double offset = 1 / (1.0 * (maxHeight - minHeight) / (1.0 * heightOffset));
-	
-	for(int h = minHeight; h < maxHeight; h = h + heightOffset)
-	{
-		marchingSquares->setThreshold(h);
-		for(i = 0; i < columns; i++) for (j = 0; j < rows; j++) 
-	    {
-			if (i + 1 != columns && j + 1 != rows)
-			{
-				c = marchingSquares->cell(data[i][j], data[i+1][j], data[i+1][j+1], data[i][j+1]); // TODO - this is the same every time
-				glColor3f(red, green, blue);
-				marchingSquares->lines(c,i,j,data[i][j], data[i+1][j], data[i+1][j+1], data[i][j+1]);
-			}
-		}
-
-		red += offset;
-		green -= offset;
-	} // outer for loop
-
+	contours->draw();
 	glPopMatrix();
+	
+	// Textual information
 	Helper::instance().displayText(0.3f, 0.92f, "#Contours: %i", numberContours);
 	glFlush();
 }
@@ -130,7 +108,6 @@ void display()
 */
 void orthoProj(int w, int h)
 {
-	// TODO
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
@@ -181,15 +158,20 @@ void keyboardFunc(unsigned char key, int x, int y)
 	{
 		case PLUS_SIGN:
 		{
-			numberContours += 2;
+			numberContours *= 2;
+			contours->resetNumberContours(numberContours);
 			break;
 		}
 		case MINUS_SIGN:
 		{
-			numberContours -= 2;
-			if (numberContours == 0)
+			numberContours /= 2;
+			if (numberContours < 2)
 			{
-				numberContours += 2;
+				numberContours *= 2;
+			}
+			else {
+				
+				contours->resetNumberContours(numberContours);
 			}
 			break;
 		}
@@ -281,8 +263,8 @@ void specialFunc(int key, int x, int y)
 void idleFunc()
 {	
 	// TODO - rotate - needed?
-zDegrees -= RADIANS_ACCURACY;
-	glutPostRedisplay();
+	// zDegrees -= RADIANS_ACCURACY;
+	//glutPostRedisplay();
 }
 
 /**
@@ -305,7 +287,7 @@ void setup()
 void cleanup()
 {
 	DataAcquisition::freeData(data, columns);
-	delete marchingSquares;
+	//delete marchingSquares;
 	delete palette;
 }
 
@@ -335,9 +317,11 @@ Helper::instance().START_PROFILING(PROFILE_FILE);
 	// Get data before starting any graphics
 	std::string fileName = DATA_FILE("honolulu_raw.txt"); //argv[1];
 	data = DataAcquisition::getData(fileName, &rows, &columns);
-	marchingSquares = new MarchingSquares(columns, rows);
+	//marchingSquares = new MarchingSquares(columns, rows);
 	palette = new Palette();
 
+	contours = new Contours(data, columns, rows, 960, 0);
+	contours->resetNumberContours(10);
 
 	setup();
 	glutInit(&argc, argv);

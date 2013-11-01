@@ -68,7 +68,6 @@ void Helper::START_PROFILING(std::string fileName)
 {
 	if(PROFILER)
 		ProfilerStart(fileName.c_str()); 
-
 }
 
 void Helper::STOP_PROFILING()
@@ -77,9 +76,12 @@ void Helper::STOP_PROFILING()
 		ProfilerStop();
 }
 #else
+ 
 void Helper::START_PROFILING(std::string fileName) {}
 void Helper::STOP_PROFILING() {}
+
 #endif
+ 
 
 /*
  * PRIVATE METHODS
