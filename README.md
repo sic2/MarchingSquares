@@ -1,6 +1,6 @@
 # Square Shift
 
-Descrition
+Square Shift is a 2.5D contours modelling viewer. 
 
 ======================================
 
@@ -18,18 +18,17 @@ Clean all compiled files:
 
 	$ make clean
 
---------------------------------------
 
 # How to use profiling data
 
 Generate textual listing
+
 	$ pprof --text ./squareShift Profiling/squareShift.prof
 
 Generate annotated callgraph 
+
 	$ pprof --gv ./squareShift Profiling/squareShift.prof > OUTPUT.gif
 
-
---------------------------------------
 
 # TODO
 
@@ -40,22 +39,20 @@ Generate annotated callgraph
 	[] Predefined set of colors
 	[] More detailed profiling
 
---------------------------------------
-
-# Tested targets
-	i686-apple-darwin10-gcc-4.2.1
 
 # Requirements
 
+	gcc compiler, compliant to c++03
 
-Profiling
+## Tested targets
+	i686-apple-darwin10-gcc-4.2.1
+
+## Profiling
 
 	gperftools-2.1 (http://code.google.com/p/gperftools/)
 	perl 5
 	gv (installable via MacPorts)
 
-
---------------------------------------
 
 # Third party resources
 

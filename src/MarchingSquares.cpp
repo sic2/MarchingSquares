@@ -35,7 +35,7 @@ void MarchingSquares::lines(int num, int i, int j, double a, double b, double c,
 
 void MarchingSquares::draw_one(int num, int i, int j, double a, double b, double c, double d)
 {
-  double x1, y1, x2, y2;
+  double x1 = 0.0, y1 = 0.0, x2 = 0.0, y2 = 0.0;
   double ox, oy;
   double dx, dy;
   dx=(X_MAX-(X_MIN))/(_xCells-1.0);
@@ -77,7 +77,7 @@ void MarchingSquares::draw_one(int num, int i, int j, double a, double b, double
 
 void MarchingSquares::draw_adjacent(int num, int i, int j, double a, double b, double c, double d)
 {
-  double x1, y1, x2, y2;
+  double x1 = 0.0, y1 = 0.0, x2 = 0.0, y2 = 0.0;
   double ox, oy;
   double dx, dy;
   dx=(X_MAX-(X_MIN))/(_xCells-1.0);
@@ -107,7 +107,7 @@ void MarchingSquares::draw_adjacent(int num, int i, int j, double a, double b, d
 }
 void MarchingSquares::draw_opposite(int num, int i, int j, double a, double b, double c, double d)
 {
-  double x1,y1,x2,y2,x3,y3,x4,y4;
+  double x1 = 0.0,y1 = 0.0,x2 = 0.0,y2 = 0.0,x3 = 0.0,y3 = 0.0,x4 = 0.0,y4 = 0.0;
   double ox, oy;
   double dx, dy;
   dx=(X_MAX-(X_MIN))/(_xCells-1.0);

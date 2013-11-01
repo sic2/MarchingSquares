@@ -1,11 +1,16 @@
 #include "Helper.h"
 
+// OpenGL + GLUT
 #ifdef __APPLE__
 #include <GLUT/glut.h>
 #else
 #include <GL/glut.h>
 #endif
 
+// Profiling
+#include <google/profiler.h>
+
+// Std header files
 #include <sstream>
 
 #define WHITE_COLOR 1.0f
@@ -50,6 +55,17 @@ void Helper::displayText(float x, float y, const char *fmt, ...)
 	glPopAttrib();
 }
 
+void Helper::START_PROFILING(std::string fileName)
+{
+	if(PROFILER)
+		ProfilerStart(fileName.c_str()); 
+}
+
+void Helper::STOP_PROFILING()
+{
+	if(PROFILER)
+		ProfilerStop();
+}
 
 /*
  * PRIVATE METHODS

@@ -11,8 +11,17 @@
 
 #include <sstream>
 
-#include <google/profiler.h>
-#define PROFILE_FILE "Profiling/squareShift.prof"
+/*
+* Profiling files
+*/
+#define PROFILE_FOLDER "Profiling/"
+#define PROFILE_FILE PROFILE_FOLDER "squareShift.prof"
+
+/*
+* Other definitions
+*/ 
+#define DATA_FOLDER "Data/"
+#define DATA_FILE(file) DATA_FOLDER file
 
 /*
 * Key bindings
@@ -180,15 +189,15 @@ void keyboardFunc(unsigned char key, int x, int y)
 	{
 		case PLUS_SIGN:
 		{
-			numberContours *= 2;
+			numberContours += 2;
 			break;
 		}
 		case MINUS_SIGN:
 		{
-			numberContours /= 2;
+			numberContours -= 2;
 			if (numberContours == 0)
 			{
-				numberContours *= 2;
+				numberContours += 2;
 			}
 			break;
 		}
@@ -251,21 +260,20 @@ void keyboardFunc(unsigned char key, int x, int y)
 */
 void specialFunc(int key, int x, int y)
 {
-	// TODO - use these keys to move along the model
 	switch(key)
 	{
 		// Change color scale
 		case GLUT_KEY_LEFT:
-			zDegrees -= RADIANS_ACCURACY; // FIXME
+			zDegrees -= RADIANS_ACCURACY;
 		break;
 		case GLUT_KEY_RIGHT:
-			zDegrees += RADIANS_ACCURACY; // FIXME
+			zDegrees += RADIANS_ACCURACY;
 		break;
 		case GLUT_KEY_UP:
-			xDegrees -= RADIANS_ACCURACY; // FIXME
+			xDegrees -= RADIANS_ACCURACY;
 		break;
 		case GLUT_KEY_DOWN:
-			xDegrees += RADIANS_ACCURACY; // FIXME
+			xDegrees += RADIANS_ACCURACY;
 		break;
 		default:
 			printf("Unused special key %d pressed\n", key);
@@ -322,7 +330,9 @@ void shutDown()
 */
 int main(int argc, char **argv)
 {	
-ProfilerStart(PROFILE_FILE);
+
+Helper::instance().START_PROFILING(PROFILE_FILE);
+
 	if (argc < 2) // No arguments given, then return with error
 	{
 		printf("[ ERROR ] :: Please provide a data set file\n");
@@ -330,7 +340,7 @@ ProfilerStart(PROFILE_FILE);
 	}
 
 	// Get data before starting any graphics
-	std::string fileName = "Data/honolulu_raw.txt"; //argv[1];
+	std::string fileName = DATA_FILE("honolulu_raw.txt"); //argv[1];
 	data = DataAcquisition::getData(fileName, &rows, &columns);
 	marchingSquares = new MarchingSquares(columns, rows);
 	palette = new Palette();
@@ -347,12 +357,14 @@ ProfilerStart(PROFILE_FILE);
 	glutDisplayFunc(display);
 	glutKeyboardFunc(keyboardFunc);
 	glutSpecialFunc(specialFunc);
-	//glutIdleFunc(idleFunc);
+	glutIdleFunc(idleFunc);
 
 	glClearColor(0.0,0.0,0.0,1.0);
 	glColor3f(1.0,1.0,1.0);
 
 	glutMainLoop();
-ProfilerStop();
+
+Helper::instance().STOP_PROFILING();
+
 	return 0;
 }

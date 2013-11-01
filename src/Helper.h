@@ -24,6 +24,16 @@ public:
     * 		the dimension of the text is fixed to 9x15 pixels
     */
     void displayText(float x, float y, const char *fmt, ...);
+
+    /**
+    *
+    */
+    void START_PROFILING(std::string fileName);
+
+    /**
+    *
+    */
+    void STOP_PROFILING();
         
 protected:
     static Helper sInstance;
