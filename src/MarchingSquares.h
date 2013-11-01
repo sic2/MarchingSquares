@@ -21,6 +21,7 @@
 
 #define WINDOW_OFFSET 50
 #define INITIAL_THRESHOLD 0
+#define HEIGHT_SCALE 0.35
 
 class MarchingSquares
 {
@@ -30,6 +31,7 @@ public:
 		_xCells = x + WINDOW_OFFSET;
 		_yCells = y + WINDOW_OFFSET;
 		_threshold = INITIAL_THRESHOLD;
+		_scaledTheshold = HEIGHT_SCALE * (_threshold / 960.0); // FIXME
 	}
 
 	virtual ~MarchingSquares() {}
@@ -47,7 +49,7 @@ public:
 	/**
 	*
 	*/
-	void setThreshold(unsigned int threshold) { this->_threshold = threshold; }
+	void setThreshold(unsigned int threshold);
 
 private:
 	int _xCells;
@@ -55,6 +57,7 @@ private:
 
 	/* contour value */
 	unsigned int _threshold;
+	float _scaledTheshold;
 
 	std::map<unsigned int, int**> test; // FIXME
 
