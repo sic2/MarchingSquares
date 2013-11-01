@@ -15,9 +15,16 @@ CPPFLAGS += $(foreach includedir,$(program_INCLUDE_DIRS),-I$(includedir))
 LDFLAGS += $(foreach librarydir,$(program_LIBRARY_DIRS),-L$(librarydir))
 LDFLAGS += $(foreach library,$(program_LIBRARIES),-l$(library))
 CXXFLAGS = -Wall -g 
-# GL Flags
-GLFLAGS = -framework OpenGL -framework GLUT 
 
+UNAME := $(shell uname)
+
+# GL Flags
+ifeq ($(UNAME), Darwin)
+	GLFLAGS = -framework OpenGL -framework GLUT	
+endif
+ifeq ($(UNAME), Linux)
+	GLFLAGS = -lGL -lGLU -lglut
+endif
 
 .PHONY: all clean distclean
 

@@ -7,11 +7,9 @@
 #include <GL/glut.h>
 #endif
 
-// Profiling
-#include <google/profiler.h>
-
 // Std header files
 #include <sstream>
+#include <cstring>
 
 #define WHITE_COLOR 1.0f
 
@@ -55,10 +53,22 @@ void Helper::displayText(float x, float y, const char *fmt, ...)
 	glPopAttrib();
 }
 
+/*
+* Profiling requires Google Perf Tools to be installed.
+* The tools are installed in my Mac, but not in the 
+* Lab Linux Machine I use. Therefore, profiling is always
+* disabled for the latter machine.
+*
+* http://goog-perftools.sourceforge.net/
+*/
+#ifdef __APPLE__
+#include <google/profiler.h>
+
 void Helper::START_PROFILING(std::string fileName)
 {
 	if(PROFILER)
 		ProfilerStart(fileName.c_str()); 
+
 }
 
 void Helper::STOP_PROFILING()
@@ -66,6 +76,10 @@ void Helper::STOP_PROFILING()
 	if(PROFILER)
 		ProfilerStop();
 }
+#else
+void Helper::START_PROFILING(std::string fileName) {}
+void Helper::STOP_PROFILING() {}
+#endif
 
 /*
  * PRIVATE METHODS
