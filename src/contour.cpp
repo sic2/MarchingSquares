@@ -1,6 +1,7 @@
 #include "MarchingSquares.h"
 #include "DataAcquisition.h"
 #include "Palette.h"
+#include "Helper.h"
 
 #ifdef __APPLE__
 #include <GLUT/glut.h>
@@ -116,17 +117,8 @@ void display()
 	} // outer for loop
 
 	glPopMatrix();
-
-	//Display the number of countours currently displayed
-	glPushAttrib(GL_COLOR_BUFFER_BIT);
-	float color = 1.0f;
-	glColor3f(color, color, color);
-	glRasterPos2f(0.3f, 0.92f);
-   	writeBitmapString(GLUT_BITMAP_9_BY_15, std::string("# Countours: " + integerToString(numberContours)).c_str());
-	glPopAttrib();
-
+	Helper::instance().displayText(0.3f, 0.92f, "#Contours: %i", numberContours);
 	glFlush();
-	
 }
 
 /**
@@ -174,7 +166,6 @@ void myReshape(int w, int h)
 	{
 		prespectiveProj();
 	}
-	
 }
 
 /**
@@ -291,7 +282,7 @@ void idleFunc()
 }
 
 /**
-*
+* TODO: use constants
 */
 void setup()
 {
@@ -323,32 +314,24 @@ void shutDown()
 	exit(EXIT_SUCCESS);
 }
 
-/*
-* This function is taken from the book:
-* Computer Graphics Through OpenGL: From Theory to Experiments
-* by Sumanta Guha
-*/
-void writeBitmapString(void *font, std::string str)
-{  
-	int len = str.length() + 1;
-	char *cstr = new char[len];
-	strcpy(cstr, str.c_str());
-	for(int i = 0; i < len && cstr[i] != '\0'; i++)
-	{
-		glutBitmapCharacter(font, cstr[i]);
-	}
-	delete [] cstr;
-}
+// /*
+// * This function is taken from the book:
+// * Computer Graphics Through OpenGL: From Theory to Experiments
+// * by Sumanta Guha
+// */
+// void writeBitmapString(void *font, std::string str)
+// {  
+// 	int len = str.length() + 1;
+// 	char *cstr = new char[len];
+// 	strcpy(cstr, str.c_str());
+// 	for(int i = 0; i < len && cstr[i] != '\0'; i++)
+// 	{
+// 		glutBitmapCharacter(font, cstr[i]);
+// 	}
+// 	delete [] cstr;
+// }
 
-/**
-* TODO - move to helper 
-*/
-std::string integerToString(int value)
-{
-	std::ostringstream convert; 
-	convert << value;
-	return convert.str();
-}
+
 
 /**
 *

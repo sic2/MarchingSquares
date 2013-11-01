@@ -19,7 +19,7 @@
 #define X_MIN -1.0
 #define Y_MIN -1.0
 
-#define WINDOW_OFFSET 100
+#define WINDOW_OFFSET 50
 #define INITIAL_THRESHOLD 0
 
 class MarchingSquares
@@ -27,7 +27,7 @@ class MarchingSquares
 public:
 	inline MarchingSquares(int x, int y)
 	{
-		_xCells = x + WINDOW_OFFSET; // XXX - offset
+		_xCells = x + WINDOW_OFFSET;
 		_yCells = y + WINDOW_OFFSET;
 		_threshold = INITIAL_THRESHOLD;
 	}
