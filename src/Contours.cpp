@@ -1,5 +1,11 @@
 #include "Contours.h"
 
+#include <vector>
+#include <algorithm>
+
+#define INITIAL_NUMBER_CONTOURS 8
+#define MULTIPLICATOR_FACTOR 2
+
 Contours::Contours(int** data, unsigned int columns, unsigned int rows, int maxHeight, int minHeight)
 {
 	this->_data = data;
@@ -7,62 +13,119 @@ Contours::Contours(int** data, unsigned int columns, unsigned int rows, int maxH
 	this->_rows = rows;
 	this->_maxHeight = maxHeight;
 	this->_minHeight = minHeight;
+	this->_numberContours = INITIAL_NUMBER_CONTOURS;
 
 	_xCells = columns + WINDOW_OFFSET;
 	_yCells = rows + WINDOW_OFFSET;
+
+	addContours();
+}
+
+Contours::~Contours()
+{
+	// Removing any left data about vertices
+	for(std::map< int, std::pair<int, float*> >::iterator iter = _contoursData.begin(); 
+		iter != _contoursData.end(); ++iter)
+	{
+		delete _contoursData[iter->first].second;
+	}
 }
 
 /*
  * Calculate the vertices for all the contours once, 
  * until these change.
  */
-void Contours::resetNumberContours(unsigned int numberContours)
+void Contours::changeNumberContours(bool doubleNumberContours)
 {
-	this->_numberContours = numberContours;	
-	int heightOffset = (_maxHeight - _minHeight) / (numberContours * 1.0);
-	int i, j, c;
-	for(int h = _minHeight; h < _maxHeight; h = h + heightOffset)
+	if (doubleNumberContours)
 	{
+		this->_numberContours *= MULTIPLICATOR_FACTOR;
+		addContours();
+	}
+	else
+	{
+		this->_numberContours /= MULTIPLICATOR_FACTOR;
+		if (this->_numberContours < MULTIPLICATOR_FACTOR)
+		{
+			this->_numberContours *= MULTIPLICATOR_FACTOR;
+		}
+		else
+		{
+			removeContours();
+		}
+	}
+}
+
+void Contours::addContours()
+{
+	int heightOffset = (_maxHeight - _minHeight) / (this->_numberContours * 1.0);
+	unsigned int i, j;
+	for(int height = _minHeight; height < _maxHeight; height += heightOffset)
+	{
+		// If data about this height is already in the map, then skip it.
+		if (_contoursData.size() > 0 && (_contoursData.find(height) != _contoursData.end())) continue; // FIXME
+
 		// Calculate the total number of lines for this contour.
 		unsigned int totalNumberVertices = 0; 
 		for(i = 0; i < _columns; i++) for (j = 0; j < _rows; j++) 
 	    {
 			if (i + 1 != _columns && j + 1 != _rows)
 			{
-				c = cell(h, _data[i][j], _data[i+1][j], _data[i+1][j+1], _data[i][j+1]);
-				totalNumberVertices += numberLines(c);
+				totalNumberVertices += numberVertices(cell(height, _data[i][j], _data[i+1][j], _data[i+1][j+1], _data[i][j+1]));
 			}
 		}
 		
+		int c;
 		float* vertices = new float[3 * totalNumberVertices];
 		unsigned int totalNumberCoordinates = 0; // Reset the total number of lines calculated.
-		// Calculate the lines for this contour.
-		for(i = 0; i < _columns; i++) for (j = 0; j < _rows; j++) 
+		for(i = 0; i < _columns; i++) for (j = 0; j < _rows; j++)  // Calculate the lines for this contour.
 	    {
 			if (i + 1 != _columns && j + 1 != _rows)
 			{
-				c = cell(h, _data[i][j], _data[i+1][j], _data[i+1][j+1], _data[i][j+1]);
+				c = cell(height, _data[i][j], _data[i+1][j], _data[i+1][j+1], _data[i][j+1]);
 				
-				lines(h, vertices, totalNumberCoordinates, 
+				lines(height, vertices, totalNumberCoordinates, 
 					  c,i,j, _data[i][j], _data[i+1][j], _data[i+1][j+1], _data[i][j+1]);
-				totalNumberCoordinates += numberLines(c) * 3;
+				totalNumberCoordinates += numberVertices(c) * 3;
 			}
 		}
-		_contoursData.push_back(std::make_pair<int, float*> (totalNumberVertices, vertices));
+		_contoursData.insert(std::pair<int, std::pair<int, float*> > (height, std::make_pair<int, float*> (totalNumberVertices, vertices)));
+	}
+}
+
+void Contours::removeContours()
+{
+	int heightOffset = (_maxHeight - _minHeight) / (this->_numberContours * 1.0);
+	std::vector< int > heights;
+	for(int height = _minHeight; height < _maxHeight; height += heightOffset)
+	{
+		heights.push_back(height);
+	}
+
+	for(std::map< int, std::pair<int, float*> >::iterator iter = _contoursData.begin(); 
+		iter != _contoursData.end(); ++iter)
+	{
+		if (std::find(heights.begin(), heights.end(), iter->first) != heights.end()) continue;
+
+		delete _contoursData[iter->first].second;
+		_contoursData.erase(iter->first);
 	}
 }
 
 /*
- * Use glDrawArrays to reduce the number of gl-Calls.
+ * Use glDrawArrays to reduce the number of gl-Calls
+ * and speedup rendering.
+ * 
+ * Note: see if glDrawElements can be used, since it should be faster
  */
 void Contours::draw()
 {
 	glEnableClientState( GL_VERTEX_ARRAY );
-	for(std::vector< std::pair<int, float*> >::iterator iter = _contoursData.begin(); 
+	for(std::map< int, std::pair<int, float*> >::iterator iter = _contoursData.begin(); 
 		iter != _contoursData.end(); ++iter)
 	{
-		glVertexPointer(3, GL_FLOAT, 0, iter->second);
-		glDrawArrays(GL_LINES, 0, iter->first);
+		glVertexPointer(3, GL_FLOAT, 0, iter->second.second);
+		glDrawArrays(GL_LINES, 0, iter->second.first);
 	}
 	glDisableClientState(GL_VERTEX_ARRAY);
 }
@@ -81,7 +144,7 @@ int Contours::cell(unsigned int height, double a, double b, double c , double d)
 	return n;
 }
 
-unsigned int Contours::numberLines(int num)
+unsigned int Contours::numberVertices(int num)
 {
 	unsigned int retval = 0;
 	switch(num)

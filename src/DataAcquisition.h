@@ -9,7 +9,10 @@ class DataAcquisition
 {
 public:
 	/**
-	* TODO
+	* @param fileName containing the data to be displayed
+	* @param rows [OUT] 
+	* @param columns [OUT]
+	* @return data to be displayed as int[columns][rows]
 	*/
 	inline static int** getData(std::string fileName, int* rows, int* columns)
 	{
@@ -58,14 +61,11 @@ public:
 	}
 
 	/**
-	* TODO
+	* Free data
 	*/
 	inline static void freeData(int** data, int columns)
 	{
-		for (int i = 0; i < columns; i++)
-		{  
-	 		free(data[i]);  
-		}  
+		for (int i = 0; i < columns; i++) free(data[i]);
 		free(data);
 	}
 };

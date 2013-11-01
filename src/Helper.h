@@ -14,6 +14,7 @@ public:
     static Helper& instance();
      
     /**
+    * Display a given text in the glut window.
     * @param x, y 	position of the text (from left)
     * @param fmt 	text to display. The char i is substituted by 
     *				any integer in the sequence '...' if following '%'
@@ -26,12 +27,13 @@ public:
     void displayText(float x, float y, const char *fmt, ...);
 
     /**
-    *
+    * Start the profiler if program was built in profiler mode
+    * and the system supports profiling.
     */
     void START_PROFILING(std::string fileName);
 
     /**
-    *
+    * Stop the profiler.
     */
     void STOP_PROFILING();
         

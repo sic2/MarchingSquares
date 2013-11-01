@@ -6,7 +6,7 @@
 #include <GL/glut.h>
 #endif
 
-#include <vector>
+#include <map>
 
 /* region size */
 #define X_MAX 1.0
@@ -22,21 +22,20 @@ class Contours
 {
 public:
 	Contours(int** data, unsigned int columns, unsigned int rows, int maxHeight, int minHeight);
-	virtual ~Contours() 
-	{
-
-	} // TODO - make sure to delete allocated space in _contoursData
+	virtual ~Contours();
 
 	/**
-	* FIXME - rename threshold to height
-	* @param threshold
+	* @param doubleNumberContours
+	*		True if the number of contours has to be doubled.
+	*		False if the number of contours has to be halved.
 	*/
-	void resetNumberContours(unsigned int numberContours);
+	void changeNumberContours(bool doubleNumberContours);
 
 	void draw();
 
-private:
+	unsigned int getNumberContours() { return this->_numberContours; }
 
+private:
 	int _xCells;
 	int _yCells;
 	
@@ -45,20 +44,29 @@ private:
 	/*
 	* Map height to (number of vertices, vertices)
 	* 
-	* XXX - maybe the number of vertices is not necessary
 	*/
-	std::vector< std::pair<int, float*> > _contoursData;
-
+	std::map< int, std::pair<int, float*> > _contoursData;
 
 	unsigned int _numberContours;
-
 	unsigned int _columns;
 	unsigned int _rows;
-	unsigned int _maxHeight;
-	unsigned int _minHeight;
+	int _maxHeight;
+	int _minHeight;
 
+	/*
+	* Add contours if necessary
+	*/
+	void addContours();
 
-	unsigned int numberLines(int num);
+	/*
+	* Remove contours if necessary.
+	*/
+	void removeContours();
+
+	/**
+	*
+	*/
+	unsigned int numberVertices(int num);
 
 	/**
 	* 

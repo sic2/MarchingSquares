@@ -10,16 +10,23 @@ Compile:
 
 	$ make
 
+To turn on optimisation (-O2)
+
+	$ make release
+
 Run:
 
 	$ ./squareShift
 
-Clean all compiled files:
+Clean all compiled files + any profiling data file:
 
 	$ make clean
 
 
-# How to use profiling data
+# Profiling
+
+	$ make profile
+	$ ./squareShift
 
 Generate textual listing
 
@@ -27,17 +34,19 @@ Generate textual listing
 
 Generate annotated callgraph 
 
-	$ pprof --gv ./squareShift Profiling/squareShift.prof > OUTPUT.gif
+	$ pprof --gv ./squareShift Profiling/squareShift.prof
+
+Generate gif callgraph
+	
+	$ pprof --gif ./squareShift Profiling/squareShift.prof > OUTPUT.gif
 
 
 # TODO
 
-	[] Optimise data structures usage
 	[] Perspective projection
 	[] Predefined camera locations
 	[] Camera dynamic path
 	[] Predefined set of colors
-	[] More detailed profiling
 
 
 # Requirements

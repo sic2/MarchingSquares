@@ -38,19 +38,19 @@
 #define OPEN_ANGULAR_SIGN 60
 #define CLOSE_ANGULAR_SIGN 62
 
-#define RADIANS_ACCURACY 0.1
-#define SCALING_FACTOR 0.8
-#define RADIANS_TO_DEGREES 57.2957795 // FIXME - use unsigned int for efficiency?
+const float RADIANS_ACCURACY = 0.1f;
+const float SCALING_FACTOR = 0.8f;
+const float RADIANS_TO_DEGREES = 57.2957795f;
+const float TEXT_POSITION_X = 0.3f;
+const float TEXT_POSITION_Y = 0.92f;
 
 int** data;
 int rows;
 int columns;
 
-//MarchingSquares* marchingSquares;
 Contours* contours;
-Palette* palette;
+//Palette* palette;
 
-int numberContours;
 int minHeight;
 int maxHeight;
 
@@ -99,18 +99,15 @@ void display()
 	glPopMatrix();
 	
 	// Textual information
-	Helper::instance().displayText(0.3f, 0.92f, "#Contours: %i", numberContours);
+	Helper::instance().displayText(TEXT_POSITION_X, TEXT_POSITION_Y, "#Contours: %i", contours->getNumberContours());
 	glFlush();
 }
 
 /**
-*
+* Set the parameters for the ortho-projection
 */
 void orthoProj(int w, int h)
 {
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-
 	if (w <= h)
 	{
 		gluOrtho2D(X_MIN, X_MAX, 
@@ -121,16 +118,14 @@ void orthoProj(int w, int h)
 		gluOrtho2D(X_MIN * (GLfloat) w / (GLfloat) h, X_MAX * (GLfloat) w / (GLfloat) h, 
 			Y_MIN, Y_MAX);
 	}
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
 }
 
 /**
-*
+* FIXME - this does not change anything
 */
 void prespectiveProj()
 {
-	// TODO
+	gluPerspective(60, 1, -1, 1);
 }
 
 /**
@@ -139,6 +134,8 @@ void prespectiveProj()
 void myReshape(int w, int h)
 {
 	glViewport(0, 0, w, h);
+	glMatrixMode(GL_PROJECTION);
+   	glLoadIdentity();
 	if (useOrthoProj)
 	{	
 		orthoProj(w, h);
@@ -147,6 +144,8 @@ void myReshape(int w, int h)
 	{
 		prespectiveProj();
 	}
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
 }
 
 /**
@@ -158,21 +157,12 @@ void keyboardFunc(unsigned char key, int x, int y)
 	{
 		case PLUS_SIGN:
 		{
-			numberContours *= 2;
-			contours->resetNumberContours(numberContours);
+			contours->changeNumberContours(true);
 			break;
 		}
 		case MINUS_SIGN:
 		{
-			numberContours /= 2;
-			if (numberContours < 2)
-			{
-				numberContours *= 2;
-			}
-			else {
-				
-				contours->resetNumberContours(numberContours);
-			}
+			contours->changeNumberContours(false);
 			break;
 		}
 		case C_SIGN:
@@ -237,18 +227,14 @@ void specialFunc(int key, int x, int y)
 	switch(key)
 	{
 		// Change color scale
-		case GLUT_KEY_LEFT:
-			zDegrees -= RADIANS_ACCURACY;
-		break;
-		case GLUT_KEY_RIGHT:
-			zDegrees += RADIANS_ACCURACY;
-		break;
-		case GLUT_KEY_UP:
-			xDegrees -= RADIANS_ACCURACY;
-		break;
-		case GLUT_KEY_DOWN:
-			xDegrees += RADIANS_ACCURACY;
-		break;
+		case GLUT_KEY_LEFT: zDegrees -= RADIANS_ACCURACY;
+			break;
+		case GLUT_KEY_RIGHT: zDegrees += RADIANS_ACCURACY;
+			break;
+		case GLUT_KEY_UP: xDegrees -= RADIANS_ACCURACY;
+			break;
+		case GLUT_KEY_DOWN: xDegrees += RADIANS_ACCURACY;
+			break;
 		default:
 			printf("Unused special key %d pressed\n", key);
 		break;
@@ -272,27 +258,27 @@ void idleFunc()
 */
 void setup()
 {
-	numberContours = 10; // Initial number of contours
 	minHeight = 0;
 	maxHeight = 960;
 	zDegrees = 0.0;
 	xDegrees = 0.0;
-	colorScale = palette->nextColorScale(); // FIXME - delete prev allocated color 
+	//colorScale = palette->nextColorScale(); // FIXME - delete prev allocated color 
 	useOrthoProj = true;
 }
 
 /**
-*
+* Delete any allocated resources
 */
 void cleanup()
 {
 	DataAcquisition::freeData(data, columns);
-	//delete marchingSquares;
-	delete palette;
+	delete contours;
+	//delete palette;
 }
 
 /**
-*
+* Shuts down the application.
+* This involves a call to #cleanup() as well.
 */
 void shutDown()
 {
@@ -305,7 +291,6 @@ void shutDown()
 */
 int main(int argc, char **argv)
 {	
-
 Helper::instance().START_PROFILING(PROFILE_FILE);
 
 	if (argc < 2) // No arguments given, then return with error
@@ -317,11 +302,8 @@ Helper::instance().START_PROFILING(PROFILE_FILE);
 	// Get data before starting any graphics
 	std::string fileName = DATA_FILE("honolulu_raw.txt"); //argv[1];
 	data = DataAcquisition::getData(fileName, &rows, &columns);
-	//marchingSquares = new MarchingSquares(columns, rows);
-	palette = new Palette();
-
+	//palette = new Palette();
 	contours = new Contours(data, columns, rows, 960, 0);
-	contours->resetNumberContours(10);
 
 	setup();
 	glutInit(&argc, argv);
@@ -342,6 +324,5 @@ Helper::instance().START_PROFILING(PROFILE_FILE);
 	glutMainLoop();
 
 Helper::instance().STOP_PROFILING();
-
 	return 0;
 }
