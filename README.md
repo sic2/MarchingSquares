@@ -20,6 +20,17 @@ Clean all compiled files:
 
 --------------------------------------
 
+# How to use profiling data
+
+Generate textual listing
+	$ pprof --text ./squareShift Profiling/squareShift.prof
+
+Generate annotated callgraph 
+	$ pprof --gv ./squareShift Profiling/squareShift.prof > OUTPUT.gif
+
+
+--------------------------------------
+
 # TODO
 
 	[] Optimise data structures usage
@@ -41,6 +52,7 @@ Profiling
 
 	gperftools-2.1 (http://code.google.com/p/gperftools/)
 	perl 5
+	gv (installable via MacPorts)
 
 
 --------------------------------------

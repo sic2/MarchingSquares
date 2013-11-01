@@ -30,6 +30,6 @@ $(program_NAME): $(program_OBJS)
 clean:
 	@- $(RM) $(program_NAME)
 	@- $(RM) $(program_OBJS)
-	@- $(RM) *.prof # removes any profiling files
+	@- $(RM) Profiling/*.prof # removes any profiling files
 
 distclean: clean

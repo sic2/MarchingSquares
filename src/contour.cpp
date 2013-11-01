@@ -317,42 +317,24 @@ void shutDown()
 	exit(EXIT_SUCCESS);
 }
 
-// /*
-// * This function is taken from the book:
-// * Computer Graphics Through OpenGL: From Theory to Experiments
-// * by Sumanta Guha
-// */
-// void writeBitmapString(void *font, std::string str)
-// {  
-// 	int len = str.length() + 1;
-// 	char *cstr = new char[len];
-// 	strcpy(cstr, str.c_str());
-// 	for(int i = 0; i < len && cstr[i] != '\0'; i++)
-// 	{
-// 		glutBitmapCharacter(font, cstr[i]);
-// 	}
-// 	delete [] cstr;
-// }
-
-
-
 /**
 *
 */
 int main(int argc, char **argv)
 {	
+ProfilerStart(PROFILE_FILE);
 	if (argc < 2) // No arguments given, then return with error
 	{
 		printf("[ ERROR ] :: Please provide a data set file\n");
 		//return 1;  // TODO - uncomment
 	}
-ProfilerStart(PROFILE_FILE);
+
 	// Get data before starting any graphics
 	std::string fileName = "Data/honolulu_raw.txt"; //argv[1];
 	data = DataAcquisition::getData(fileName, &rows, &columns);
 	marchingSquares = new MarchingSquares(columns, rows);
 	palette = new Palette();
-ProfilerStop();
+
 
 	setup();
 	glutInit(&argc, argv);
@@ -371,6 +353,6 @@ ProfilerStop();
 	glColor3f(1.0,1.0,1.0);
 
 	glutMainLoop();
-
+ProfilerStop();
 	return 0;
 }
