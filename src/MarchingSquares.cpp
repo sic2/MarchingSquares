@@ -70,8 +70,8 @@ void MarchingSquares::draw_one(int num, int i, int j, double a, double b, double
 	  break;
 	}
   glBegin(GL_LINES);
-	glVertex3d(x1, y1, 0);
-	glVertex3d(x2, y2, 0);
+	glVertex3f(x1, y1, this->_threshold / 960.0); // FIXME - divide by height range
+	glVertex3f(x2, y2, this->_threshold / 960.0);
   glEnd();
 }
 
@@ -100,8 +100,8 @@ void MarchingSquares::draw_adjacent(int num, int i, int j, double a, double b, d
 	  break;
   }
   glBegin(GL_LINES);
-    glVertex3d(x1, y1, 0);
-    glVertex3d(x2, y2, 0);
+    glVertex3f(x1, y1, this->_threshold / 960.0);
+    glVertex3f(x2, y2, this->_threshold/ 960.0);
   glEnd();
 
 }
@@ -139,9 +139,9 @@ void MarchingSquares::draw_opposite(int num, int i, int j, double a, double b, d
   }
 
   glBegin(GL_LINES);
-    glVertex3d(x1, y1, 0);
-    glVertex3d(x2, y2, 0);
-    glVertex3d(x3, y3, 0);
-    glVertex3d(x4, y4, 0);
+    glVertex3f(x1, y1, this->_threshold / 960.0);
+    glVertex3f(x2, y2, this->_threshold/ 960.0);
+    glVertex3f(x3, y3, this->_threshold/ 960.0);
+    glVertex3f(x4, y4, this->_threshold/ 960.0);
   glEnd();
 }

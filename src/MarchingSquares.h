@@ -11,35 +11,52 @@
 #include <GL/glut.h>
 #endif
 
+#include <map>
+
 /* region size */
 #define X_MAX 1.0
 #define Y_MAX 1.0
 #define X_MIN -1.0
 #define Y_MIN -1.0
 
+#define WINDOW_OFFSET 100
+#define INITIAL_THRESHOLD 0
+
 class MarchingSquares
 {
 public:
 	inline MarchingSquares(int x, int y)
 	{
-		_xCells = x + 100; // XXX - offset
-		_yCells = y + 100;
-		_threshold = 0;
+		_xCells = x + WINDOW_OFFSET; // XXX - offset
+		_yCells = y + WINDOW_OFFSET;
+		_threshold = INITIAL_THRESHOLD;
 	}
 
 	virtual ~MarchingSquares() {}
 
+	/**
+	*
+	*/
 	int cell(double a, double b, double c , double d);
+
+	/**
+	*
+	*/
 	void lines(int num, int i, int j, double a, double b, double c, double d);
 
-	void setThreshold(double threshold) { this->_threshold = threshold; }
+	/**
+	*
+	*/
+	void setThreshold(unsigned int threshold) { this->_threshold = threshold; }
 
 private:
 	int _xCells;
 	int _yCells;
 
 	/* contour value */
-	double _threshold;
+	unsigned int _threshold;
+
+	std::map<unsigned int, int**> test; // FIXME
 
 	void draw_one(int num, int i, int j, double a, double b, double c, double d);
 	void draw_adjacent(int num, int i, int j, double a, double b, double c, double d);

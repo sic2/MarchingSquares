@@ -10,11 +10,23 @@
 
 #include <sstream>
 
-#define ESC 27
+/*
+* Key bindings
+*/
+#define ESC_SIGN 27
 #define PLUS_SIGN 43
 #define MINUS_SIGN 45
+#define C_SIGN 67
+#define c_SIGN 99
+#define TWO_SIGN 50
+#define THREE_SIGN 51
+#define SPACE_SIGN 32
+#define OPEN_ANGULAR_SIGN 60
+#define CLOSE_ANGULAR_SIGN 62
 
-#define ACCURACY_OFFSET 5
+#define RADIANS_ACCURACY 0.2
+#define SCALING_FACTOR 0.8
+#define RADIANS_TO_DEGREES 57.2957795 // FIXME - use unsigned int for efficiency?
 
 int** data;
 int rows;
@@ -29,6 +41,11 @@ int maxHeight;
 
 Color* colorScale;
 
+double zDegrees;
+double xDegrees;
+
+bool useOrthoProj;
+
 /*
 * Preprocessors
 */
@@ -38,6 +55,8 @@ void myReshape(int w, int h);
 void keyboardFunc(unsigned char key, int x, int y);
 void specialFunc(int key, int x, int y);
 void idleFunc();
+void orthoProj(int w, int h);
+void prespectiveProj();
 
 // User defined
 void setup();
@@ -50,16 +69,28 @@ std::string integerToString(int value);
  *  Functions  *
  *  ---------- */ 
 
+/**
+*
+*/
 void display()
 {
+	glPushMatrix();
+	glScalef(SCALING_FACTOR, SCALING_FACTOR, SCALING_FACTOR);
+	glRotatef(RADIANS_TO_DEGREES * xDegrees, 1.0, 0.0, 0.0);
+	glRotatef(RADIANS_TO_DEGREES * zDegrees, 0.0, 0.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
+
+	glColor3f(1.0, 1.0, 1.0);
+	glBegin(GL_POLYGON);
+		glVertex3f(0.0, 0.0, 0.0);
+		glVertex3f(0.0, 0.1, 0.0);
+		glVertex3f(0.1, 0.1, 0.0);
+		glVertex3f(0.1, 0.0, 0.0);
+	glEnd();
 
 	int i,j;
 	int c;
-	// set minHeight and maxHeight be looking at file
-	//double redNess = 0.00;
-	//double greenNess = 1.00;
-
+	//  TODO set minHeight and maxHeight be looking at file
 	double red = (colorScale->redBase + colorScale->redTop) / 2.0;
 	double green = (colorScale->greenBase + colorScale->greenTop) / 2.0;
 	double blue = (colorScale->blueBase + colorScale->blueTop) / 2.0;
@@ -74,7 +105,7 @@ void display()
 	    {
 			if (i + 1 != columns && j + 1 != rows)
 			{
-				c = marchingSquares->cell(data[i][j], data[i+1][j], data[i+1][j+1], data[i][j+1]);
+				c = marchingSquares->cell(data[i][j], data[i+1][j], data[i+1][j+1], data[i][j+1]); // TODO - this is the same every time
 				glColor3f(red, green, blue);
 				marchingSquares->lines(c,i,j,data[i][j], data[i+1][j], data[i+1][j+1], data[i][j+1]);
 			}
@@ -84,7 +115,9 @@ void display()
 		green -= offset;
 	} // outer for loop
 
-	// Display the number of countours currently displayed
+	glPopMatrix();
+
+	//Display the number of countours currently displayed
 	glPushAttrib(GL_COLOR_BUFFER_BIT);
 	float color = 1.0f;
 	glColor3f(color, color, color);
@@ -93,62 +126,152 @@ void display()
 	glPopAttrib();
 
 	glFlush();
+	
 }
 
+/**
+*
+*/
+void orthoProj(int w, int h)
+{
+	// TODO
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+
+	if (w <= h)
+	{
+		gluOrtho2D(X_MIN, X_MAX, 
+			Y_MIN * (GLfloat) h / (GLfloat) w, Y_MAX * (GLfloat) h / (GLfloat) w);
+	}
+	else
+	{
+		gluOrtho2D(X_MIN * (GLfloat) w / (GLfloat) h, X_MAX * (GLfloat) w / (GLfloat) h, 
+			Y_MIN, Y_MAX);
+	}
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+}
+
+/**
+*
+*/
+void prespectiveProj()
+{
+	// TODO
+}
+
+/**
+*
+*/
 void myReshape(int w, int h)
 {
 	glViewport(0, 0, w, h);
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	if (w <= h)
-		gluOrtho2D(X_MIN, X_MAX, Y_MIN * (GLfloat) h / (GLfloat) w,
-		Y_MAX * (GLfloat) h / (GLfloat) w);
+	if (useOrthoProj)
+	{	
+		orthoProj(w, h);
+	}
 	else
-		gluOrtho2D(X_MIN * (GLfloat) w / (GLfloat) h,
-		X_MAX * (GLfloat) w / (GLfloat) h, Y_MIN, Y_MAX);
-	glMatrixMode(GL_MODELVIEW);
+	{
+		prespectiveProj();
+	}
+	
 }
 
+/**
+*
+*/
 void keyboardFunc(unsigned char key, int x, int y)
 {
 	switch(key)
 	{
 		case PLUS_SIGN:
 		{
-			numberContours++;
+			numberContours *= 2;
+			break;
 		}
-		break;
 		case MINUS_SIGN:
 		{
-			numberContours--;
+			numberContours /= 2;
 			if (numberContours == 0)
 			{
-				numberContours++;
+				numberContours *= 2;
 			}
+			break;
 		}
-		break;
-		case ESC:
+		case C_SIGN:
+		case c_SIGN:
+		{
+			// TODO  - change color
+			break;
+		}
+		case SPACE_SIGN:
+		{
+			printf("dynamic path \n");
+			break;
+		}
+		case TWO_SIGN:
+		{
+			printf("glu ortho 2D\n");
+			useOrthoProj = true;
+			break;
+		}
+		case THREE_SIGN:
+		{
+			printf("perspective projection \n");
+			useOrthoProj = false;
+			break;
+		}
+		case OPEN_ANGULAR_SIGN:
+		{
+			printf("change camera loc - predefined\n");
+			break;
+		}
+		case CLOSE_ANGULAR_SIGN:
+		{
+			printf("change camera loc - predefined\n");
+			break;
+		}
+		case ESC_SIGN:
 		{
 			printf("Shutting down\n"); 
 			shutDown();
+			break;
 		}
 		default:
-		break;
+		{
+			printf("key %d unknown \n", key);
+			break;
+		}
 	} // end switch
+
 	glutPostRedisplay();
 }
 
-
+/**
+* Handles the following keys:
+* 	- left, right, up, down arrows
+* which are used to navigate around the model
+* @param
+* @param
+* @param
+*/
 void specialFunc(int key, int x, int y)
 {
+	// TODO - use these keys to move along the model
 	switch(key)
 	{
 		// Change color scale
 		case GLUT_KEY_LEFT:
-			palette->nextColorScale(); // TODO - prev color scale
+			zDegrees -= RADIANS_ACCURACY; // FIXME
 		break;
 		case GLUT_KEY_RIGHT:
-			palette->nextColorScale();
+			zDegrees += RADIANS_ACCURACY; // FIXME
+		break;
+		case GLUT_KEY_UP:
+			xDegrees -= RADIANS_ACCURACY; // FIXME
+		break;
+		case GLUT_KEY_DOWN:
+			xDegrees += RADIANS_ACCURACY; // FIXME
 		break;
 		default:
 			printf("Unused special key %d pressed\n", key);
@@ -158,21 +281,32 @@ void specialFunc(int key, int x, int y)
 	glutPostRedisplay();
 }
 
+/**
+*
+*/
 void idleFunc()
 {	
-	// TODO - rotate
+	// TODO - rotate - needed?
 	glutPostRedisplay();
 }
 
+/**
+*
+*/
 void setup()
 {
-	numberContours = 10;
+	numberContours = 10; // Initial number of contours
 	minHeight = 0;
-	maxHeight = 800;
-
+	maxHeight = 960;
+	zDegrees = 0.0;
+	xDegrees = 0.0;
 	colorScale = palette->nextColorScale(); // FIXME - delete prev allocated color 
+	useOrthoProj = true;
 }
 
+/**
+*
+*/
 void cleanup()
 {
 	DataAcquisition::freeData(data, columns);
@@ -180,6 +314,9 @@ void cleanup()
 	delete palette;
 }
 
+/**
+*
+*/
 void shutDown()
 {
 	cleanup();
@@ -203,6 +340,9 @@ void writeBitmapString(void *font, std::string str)
 	delete [] cstr;
 }
 
+/**
+* TODO - move to helper 
+*/
 std::string integerToString(int value)
 {
 	std::ostringstream convert; 
@@ -210,6 +350,9 @@ std::string integerToString(int value)
 	return convert.str();
 }
 
+/**
+*
+*/
 int main(int argc, char **argv)
 {	
 	if (argc < 2) // No arguments given, then return with error
@@ -235,7 +378,7 @@ int main(int argc, char **argv)
 	glutDisplayFunc(display);
 	glutKeyboardFunc(keyboardFunc);
 	glutSpecialFunc(specialFunc);
-	glutIdleFunc(idleFunc);
+	//glutIdleFunc(idleFunc);
 
 	glClearColor(0.0,0.0,0.0,1.0);
 	glColor3f(1.0,1.0,1.0);

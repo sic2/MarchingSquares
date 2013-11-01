@@ -41,7 +41,7 @@ public:
 	{
 		_index++;
 		_index = _index % NUMBER_COLOR_SCALES;
-		printf("index is %d\n", _index);
+//		printf("index is %d\n", _index);
 		switch(_index)
 		{
 			case 0:
