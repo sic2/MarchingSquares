@@ -48,6 +48,8 @@ Generate gif callgraph
 	[] Create more color schemes
 	[] Calculate contour's color once rather than every time
 	[] Get min and max height when reading the data file
+	[] Create menus
+	[] Info panel
 
 # Known bugs
 

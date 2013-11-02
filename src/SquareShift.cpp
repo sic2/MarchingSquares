@@ -42,6 +42,8 @@ const float SCALING_FACTOR = 0.8f; // Scales all model
 const float RADIANS_TO_DEGREES = 57.2957795f;
 const float TEXT_POSITION_X = 0.3f;
 const float TEXT_POSITION_Y = 0.92f;
+const float ZOOM_FACTOR = 0.01;
+const float PERSPECTIVE_ANGLE_OF_VIEW = 60;
 
 int** data;
 unsigned int rows;
@@ -146,7 +148,7 @@ void orthoProj(int w, int h)
 */
 void prespectiveProj(int w, int h)
 {
-	gluPerspective(90, w / h, 0, 1); // XXX - use constants
+	gluPerspective(PERSPECTIVE_ANGLE_OF_VIEW, w / h, 0, 1); // XXX - use constants
 }
 
 /**
@@ -227,7 +229,7 @@ void mouse(int button, int state, int x, int y)
 	if ((button == 3) || (button == 4)) // It's a wheel event
 	{
 		if (state == GLUT_UP) return; // Disregard redundant GLUT_UP events
-		(button == 3) ? zZoom -= 0.01 : zZoom += 0.01;
+		(button == 3) ? zZoom -= ZOOM_FACTOR : zZoom += ZOOM_FACTOR;
 	}
 	glutPostRedisplay();
 }
