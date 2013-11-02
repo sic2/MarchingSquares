@@ -43,22 +43,23 @@ Generate gif callgraph
 
 # TODO
 
-	[] Perspective projection
 	[] Camera dynamic path
 	[] Create an extended set of predefined locations of the camera
 	[] Create more color schemes
 	[] Calculate contour's color once rather than every time
+	[] Get min and max height when reading the data file
 
 # Known bugs
 
-	NONE
+	[] Perspective projection works on Linux Lab Machines only
 
 # Requirements
 
 	gcc compiler, compliant to c++03
 
 ## Tested targets
-	i686-apple-darwin10-gcc-4.2.1
+	i686-apple-darwin10-gcc-4.2.1 on Mac OS X 10.6.8
+	gcc-4.4.7 (Red Hat 4.4.7-3) on Scientific Linux - Kernel Linux 2.6.32
 
 ## Profiling
 

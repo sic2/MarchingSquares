@@ -57,6 +57,7 @@ float zRadians = 0.0;
 float xRadians = 0.0;
 float radians;
 float xVect, yVect, zVect;
+float zZoom = 1.0;
 
 bool useOrthoProj = true;
 bool usePredefinedCamera = false;
@@ -71,11 +72,14 @@ void display();
 void myReshape(int w, int h);
 void keyboardFunc(unsigned char key, int x, int y);
 void specialFunc(int key, int x, int y);
-void orthoProj(int w, int h);
-void prespectiveProj();
+void mouse(int button, int state, int x, int y);
 
-// User defined
-void setup();
+// Projections
+void orthoProj(int w, int h);
+void prespectiveProj(int w, int h);
+
+// Application defined
+void setup(int w, int h);
 void cleanup();
 void shutDown();
 void writeBitmapString(void *font, std::string str);
@@ -91,6 +95,12 @@ std::string integerToString(int value);
 void display()
 {
 	glPushMatrix();
+	if (!useOrthoProj)
+	{
+		gluLookAt(0.0, 0.0, zZoom,
+			0.0, 0.0, 0.0, 
+			0.0, 1.0, 0.0);
+	}
 	glScalef(SCALING_FACTOR, SCALING_FACTOR, SCALING_FACTOR);
 	if (!usePredefinedCamera)
 	{
@@ -130,34 +140,21 @@ void orthoProj(int w, int h)
 }
 
 /**
-* FIXME - this does not change anything
+* Set the prespective projection
+*
+* Note: this works only on Linux - Lab machines
 */
-void prespectiveProj()
+void prespectiveProj(int w, int h)
 {
-	printf("perspective\n");
-	gluPerspective(120, 2, 1, -1); // FIXME
+	gluPerspective(90, w / h, 0, 1); // XXX - use constants
 }
 
 /**
-*
+* Ensures that reshaping the windows keep the model in the correct ratio
 */
 void myReshape(int w, int h)
 {
-	width = w;
-	height = h;
-	glViewport(0, 0, w, h);
-	glMatrixMode(GL_PROJECTION);
-   	glLoadIdentity();
-	if (useOrthoProj)
-	{	
-		orthoProj(w, h);
-	}
-	else
-	{
-		prespectiveProj();
-	}
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
+	setup(w, h);
 }
 
 /**
@@ -178,30 +175,18 @@ void keyboardFunc(unsigned char key, int x, int y)
 			printf("dynamic path \n");
 			break;
 		}
-		case TWO_SIGN:
-		{
-			printf("glu ortho 2D\n");
-			useOrthoProj = true;
-			setup();
+		case TWO_SIGN: useOrthoProj = true; setup(width, height);
 			break;
-		}
-		case THREE_SIGN:
-		{
-			useOrthoProj = false;
-			setup();
+		case THREE_SIGN: useOrthoProj = false; setup(width, height);
 			break;
-		}
 		case OPEN_ANGULAR_SIGN: camera->getPrevCameraLocation(&radians, &xVect, &yVect, &zVect); usePredefinedCamera = true;
 			break;
 		case CLOSE_ANGULAR_SIGN: camera->getNextCameraLocation(&radians, &xVect, &yVect, &zVect); usePredefinedCamera = true;
 			break;
 		case ESC_SIGN: shutDown();
 			break;
-		default:
-		{
-			printf("key %d unknown \n", key);
+		default: printf("key %d unknown \n", key);
 			break;
-		}
 	} // end switch
 
 	glutPostRedisplay();
@@ -234,28 +219,36 @@ void specialFunc(int key, int x, int y)
 	glutPostRedisplay();
 }
 
-/**
-* TODO: use constants
-*/
-void setup()
+// Mouse scrolling snippet from stackoverflow.com
+// @see http://stackoverflow.com/questions/14378/using-the-mouse-scrollwheel-in-glut
+void mouse(int button, int state, int x, int y)
 {
-	// zRadians = 0.0;
-	// xRadians = 0.0;
-	// useOrthoProj = true;
+	// Wheel reports as button 3(scroll up) and button 4(scroll down)
+	if ((button == 3) || (button == 4)) // It's a wheel event
+	{
+		if (state == GLUT_UP) return; // Disregard redundant GLUT_UP events
+		(button == 3) ? zZoom -= 0.01 : zZoom += 0.01;
+	}
+	glutPostRedisplay();
+}
 
-	glViewport(0, 0, width, height);
+/**
+* Setup the projections and other variables (if any)
+*/
+void setup(int w, int h)
+{
+	glViewport(0, 0, w, h);
 	glMatrixMode(GL_PROJECTION);
    	glLoadIdentity();
 	if (useOrthoProj)
 	{	
-		orthoProj(width, height);
+		orthoProj(w, h);
 	}
 	else
 	{
-		prespectiveProj();
+		prespectiveProj(w, h);
 	}
 	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
 }
 
 /**
@@ -300,7 +293,7 @@ Helper::instance().START_PROFILING(PROFILE_FILE);
 	glutInit(&argc, argv);
 
 	glutInitWindowSize(500, 500);
-	width = 500; height = 500;
+	width = 500; height = 500; // XXX - Use constants
 	glutCreateWindow(fileName.c_str());
 
 	// Registering callbacks
@@ -308,6 +301,7 @@ Helper::instance().START_PROFILING(PROFILE_FILE);
 	glutDisplayFunc(display);
 	glutKeyboardFunc(keyboardFunc);
 	glutSpecialFunc(specialFunc);
+	glutMouseFunc(mouse);
 
 	glClearColor(0.0,0.0,0.0,1.0);
 	glColor3f(1.0,1.0,1.0);

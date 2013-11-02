@@ -36,6 +36,8 @@ Contours::~Contours()
 /*
  * Calculate the vertices for all the contours once, 
  * until these change.
+ *
+ * Note: if _numberContours > heightLimit the Application crashes
  */
 void Contours::changeNumberContours(bool doubleNumberContours)
 {
