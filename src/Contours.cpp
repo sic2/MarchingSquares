@@ -1,6 +1,5 @@
 #include "Contours.h"
 
-#include <vector>
 #include <algorithm>
 
 #define INITIAL_NUMBER_CONTOURS 8
@@ -18,21 +17,27 @@ Contours::Contours(int** data, unsigned int columns, unsigned int rows, int maxH
 	_yCells = rows + WINDOW_OFFSET;
 
 	addContours();
+
+	_palette = new Palette(_minHeight, _maxHeight);
 }
 
 Contours::~Contours()
 {
-	// Removing any left data about vertices
-	for(std::map< int, std::pair<int, float*> >::iterator iter = _contoursData.begin(); 
+	// Removing any remaining data about vertices
+	for(std::vector< std::pair<int, std::pair<int, float*> > >::iterator iter = _contoursData.begin(); 
 		iter != _contoursData.end(); ++iter)
 	{
-		delete _contoursData[iter->first].second;
+		delete iter->second.second;
 	}
+
+	delete _palette;
 }
 
 /*
  * Calculate the vertices for all the contours once, 
  * until these change.
+ *
+ * NOTE: bug on halving the number of contours
  */
 void Contours::changeNumberContours(bool doubleNumberContours)
 {
@@ -42,15 +47,15 @@ void Contours::changeNumberContours(bool doubleNumberContours)
 	*/
 	if (doubleNumberContours)
 	{
-		this->_numberContours <<= 1;
+		this->_numberContours <<= 1; // multiply by two
 		addContours();
 	}
 	else
 	{
-		this->_numberContours >>= 1;
+		this->_numberContours >>= 1; // divide by two
 		if (this->_numberContours < 2)
 		{
-			this->_numberContours <<= 1;
+			this->_numberContours <<= 1; // multiply by two
 		}
 		else
 		{
@@ -59,14 +64,47 @@ void Contours::changeNumberContours(bool doubleNumberContours)
 	}
 }
 
+/*
+ * Use glDrawArrays to reduce the number of gl-Calls
+ * and speedup rendering.
+ * 
+ * Note: see if glDrawElements can be used, since it should be faster
+ */
+void Contours::draw()
+{
+	glEnableClientState( GL_VERTEX_ARRAY );
+	for(std::vector< std::pair< int, std::pair<int, float*> > >::iterator iter = _contoursData.begin(); 
+		iter != _contoursData.end(); ++iter)
+	{
+		glVertexPointer(3, GL_FLOAT, 0, iter->second.second);
+
+		Color* color = _palette->getColor(iter->first / 960.0); // FIXME
+		glColor3f(color->red, color->green, color->blue);
+		glDrawArrays(GL_LINES, 0, iter->second.first);
+	}
+	glDisableClientState(GL_VERTEX_ARRAY);
+}
+
+void Contours::changeColor()
+{
+	_palette->nextColorScale();
+}
+
+/* --------------- *
+ * PRIVATE METHODS *
+ * --------------- */
+
 void Contours::addContours()
 {
 	int heightOffset = (_maxHeight - _minHeight) / (this->_numberContours * 1.0);
+	if (heightOffset % 2 != 0) heightOffset++;
+
 	unsigned int i, j;
 	for(int height = _minHeight; height < _maxHeight; height += heightOffset)
 	{
-		// If data about this height is already in the map, then skip it.
-		if (_contoursData.size() > 0 && (_contoursData.find(height) != _contoursData.end())) continue;
+		if (_contoursData.size() > 0 && 
+			(std::find_if(_contoursData.begin(),_contoursData.end(), CompareFirst(height)) != _contoursData.end()))
+				continue;
 
 		// Calculate the total number of lines for this contour.
 		unsigned int totalNumberVertices = 0; 
@@ -79,7 +117,7 @@ void Contours::addContours()
 		}
 		
 		unsigned int CASE;
-		float scaledHeight = height / 960.0; // FIXME 
+		float scaledHeight = HEIGHT_SCALE * (height / 960.0); // FIXME 
 		float* vertices = new float[3 * totalNumberVertices];
 		unsigned int totalNumberCoordinates = 0; // Reset the total number of lines calculated.
 		for(i = 0; i < _columns; ++i) for (j = 0; j < _rows; ++j)  // Calculate the lines for this contour.
@@ -105,58 +143,23 @@ void Contours::addContours()
 				totalNumberCoordinates += numberVertices(CASE) * 3;
 			}
 		}
-		_contoursData.insert(std::pair<int, std::pair<int, float*> > (height, std::make_pair<int, float*> (totalNumberVertices, vertices)));
+		_contoursData.push_back(std::pair<int, std::pair<int, float*> > (height, std::make_pair<int, float*> (totalNumberVertices, vertices)));
 	}
 }
 
 void Contours::removeContours()
 {
-	int heightOffset = (_maxHeight - _minHeight) / (this->_numberContours * 1.0);
-	std::vector< int > heights;
-	for(int height = _minHeight; height < _maxHeight; height += heightOffset)
-	{
-		heights.push_back(height);
-
-		// Sort complexity is N*log(N)
-		// @see http://www.cplusplus.com/reference/algorithm/sort/
-		// Performing this operation at every insertion reduces the total sorting time.
-		std::sort(heights.begin(), heights.end());
-	}
-
-	for(std::map< int, std::pair<int, float*> >::iterator iter = _contoursData.begin(); 
+	/*
+	* Free previously allocated memory, then erase elements in vector
+	*/
+	int half = _contoursData.size() / 2;
+	for(std::vector< std::pair<int, std::pair<int, float*> > >::iterator iter = _contoursData.begin() + half; 
 		iter != _contoursData.end(); ++iter)
 	{
-		// If found, then do not delete the element.
-		// The array heights is assumed to be ordered given that sort was called on every
-		// insertion operation previously.
-		if (std::binary_search (heights.begin(), heights.end(), iter->first)) continue;
-
-		delete _contoursData[iter->first].second;
-		_contoursData.erase(iter->first);
+		delete iter->second.second;
 	}
+	_contoursData.erase(_contoursData.begin()+half, _contoursData.end());
 }
-
-/*
- * Use glDrawArrays to reduce the number of gl-Calls
- * and speedup rendering.
- * 
- * Note: see if glDrawElements can be used, since it should be faster
- */
-void Contours::draw()
-{
-	glEnableClientState( GL_VERTEX_ARRAY );
-	for(std::map< int, std::pair<int, float*> >::iterator iter = _contoursData.begin(); 
-		iter != _contoursData.end(); ++iter)
-	{
-		glVertexPointer(3, GL_FLOAT, 0, iter->second.second);
-		glDrawArrays(GL_LINES, 0, iter->second.first);
-	}
-	glDisableClientState(GL_VERTEX_ARRAY);
-}
-
-/*
- * PRIVATE METHODS
- */
 
 unsigned int Contours::cell(unsigned int height, double a, double b, double c , double d)
 {

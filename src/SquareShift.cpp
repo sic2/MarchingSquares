@@ -1,8 +1,7 @@
 #include "DataAcquisition.h"
-#include "Palette.h"
 #include "Helper.h"
-
 #include "Contours.h"
+#include "Camera.h"
 
 #ifdef __APPLE__
 #include <GLUT/glut.h>
@@ -39,7 +38,7 @@
 #define CLOSE_ANGULAR_SIGN 62
 
 const float RADIANS_ACCURACY = 0.1f;
-const float SCALING_FACTOR = 0.5f;
+const float SCALING_FACTOR = 0.8f; // Scales all model
 const float RADIANS_TO_DEGREES = 57.2957795f;
 const float TEXT_POSITION_X = 0.3f;
 const float TEXT_POSITION_Y = 0.92f;
@@ -49,17 +48,20 @@ unsigned int rows;
 unsigned int columns;
 
 Contours* contours;
-//Palette* palette;
+Camera* camera;
 
 int minHeight;
 int maxHeight;
 
-Color* colorScale;
+float zRadians = 0.0;
+float xRadians = 0.0;
+float radians;
+float xVect, yVect, zVect;
 
-double zDegrees;
-double xDegrees;
+bool useOrthoProj = true;
+bool usePredefinedCamera = false;
 
-bool useOrthoProj;
+int width, height;
 
 /*
 * Preprocessors
@@ -69,7 +71,6 @@ void display();
 void myReshape(int w, int h);
 void keyboardFunc(unsigned char key, int x, int y);
 void specialFunc(int key, int x, int y);
-void idleFunc();
 void orthoProj(int w, int h);
 void prespectiveProj();
 
@@ -91,8 +92,16 @@ void display()
 {
 	glPushMatrix();
 	glScalef(SCALING_FACTOR, SCALING_FACTOR, SCALING_FACTOR);
-	glRotatef(RADIANS_TO_DEGREES * xDegrees, 1.0, 0.0, 0.0);
-	glRotatef(RADIANS_TO_DEGREES * zDegrees, 0.0, 0.0, 1.0);
+	if (!usePredefinedCamera)
+	{
+		glRotatef(RADIANS_TO_DEGREES * xRadians, 1.0, 0.0, 0.0);
+		glRotatef(RADIANS_TO_DEGREES * zRadians, 0.0, 0.0, 1.0);
+	}
+	else
+	{
+		glRotatef(RADIANS_TO_DEGREES * radians, xVect, yVect, zVect);
+	}
+
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	contours->draw();
@@ -125,7 +134,8 @@ void orthoProj(int w, int h)
 */
 void prespectiveProj()
 {
-	gluPerspective(60, 1, -1, 1);
+	printf("perspective\n");
+	gluPerspective(120, 2, 1, -1); // FIXME
 }
 
 /**
@@ -133,6 +143,8 @@ void prespectiveProj()
 */
 void myReshape(int w, int h)
 {
+	width = w;
+	height = h;
 	glViewport(0, 0, w, h);
 	glMatrixMode(GL_PROJECTION);
    	glLoadIdentity();
@@ -155,22 +167,12 @@ void keyboardFunc(unsigned char key, int x, int y)
 {
 	switch(key)
 	{
-		case PLUS_SIGN:
-		{
-			contours->changeNumberContours(true);
+		case PLUS_SIGN: contours->changeNumberContours(true);
 			break;
-		}
-		case MINUS_SIGN:
-		{
-			contours->changeNumberContours(false);
+		case MINUS_SIGN: contours->changeNumberContours(false);
 			break;
-		}
-		case C_SIGN:
-		case c_SIGN:
-		{
-			// TODO  - change color
+		case C_SIGN: case c_SIGN: contours->changeColor();
 			break;
-		}
 		case SPACE_SIGN:
 		{
 			printf("dynamic path \n");
@@ -180,30 +182,21 @@ void keyboardFunc(unsigned char key, int x, int y)
 		{
 			printf("glu ortho 2D\n");
 			useOrthoProj = true;
+			setup();
 			break;
 		}
 		case THREE_SIGN:
 		{
-			printf("perspective projection \n");
 			useOrthoProj = false;
+			setup();
 			break;
 		}
-		case OPEN_ANGULAR_SIGN:
-		{
-			printf("change camera loc - predefined\n");
+		case OPEN_ANGULAR_SIGN: camera->getPrevCameraLocation(&radians, &xVect, &yVect, &zVect); usePredefinedCamera = true;
 			break;
-		}
-		case CLOSE_ANGULAR_SIGN:
-		{
-			printf("change camera loc - predefined\n");
+		case CLOSE_ANGULAR_SIGN: camera->getNextCameraLocation(&radians, &xVect, &yVect, &zVect); usePredefinedCamera = true;
 			break;
-		}
-		case ESC_SIGN:
-		{
-			printf("Shutting down\n"); 
-			shutDown();
+		case ESC_SIGN: shutDown();
 			break;
-		}
 		default:
 		{
 			printf("key %d unknown \n", key);
@@ -226,17 +219,15 @@ void specialFunc(int key, int x, int y)
 {
 	switch(key)
 	{
-		// Change color scale
-		case GLUT_KEY_LEFT: zDegrees -= RADIANS_ACCURACY;
+		case GLUT_KEY_LEFT: zRadians -= RADIANS_ACCURACY; usePredefinedCamera = false;
 			break;
-		case GLUT_KEY_RIGHT: zDegrees += RADIANS_ACCURACY;
+		case GLUT_KEY_RIGHT: zRadians += RADIANS_ACCURACY; usePredefinedCamera = false;
 			break;
-		case GLUT_KEY_UP: xDegrees -= RADIANS_ACCURACY;
+		case GLUT_KEY_UP: xRadians -= RADIANS_ACCURACY; usePredefinedCamera = false;
 			break;
-		case GLUT_KEY_DOWN: xDegrees += RADIANS_ACCURACY;
+		case GLUT_KEY_DOWN: xRadians += RADIANS_ACCURACY; usePredefinedCamera = false;
 			break;
-		default:
-			printf("Unused special key %d pressed\n", key);
+		default: printf("Unused special key %d pressed\n", key);
 		break;
 	}
 	
@@ -244,26 +235,27 @@ void specialFunc(int key, int x, int y)
 }
 
 /**
-*
-*/
-void idleFunc()
-{	
-	// TODO - rotate - needed?
-	// zDegrees -= RADIANS_ACCURACY;
-	//glutPostRedisplay();
-}
-
-/**
 * TODO: use constants
 */
 void setup()
 {
-	minHeight = 0;
-	maxHeight = 960;
-	zDegrees = 0.0;
-	xDegrees = 0.0;
-	//colorScale = palette->nextColorScale(); // FIXME - delete prev allocated color 
-	useOrthoProj = true;
+	// zRadians = 0.0;
+	// xRadians = 0.0;
+	// useOrthoProj = true;
+
+	glViewport(0, 0, width, height);
+	glMatrixMode(GL_PROJECTION);
+   	glLoadIdentity();
+	if (useOrthoProj)
+	{	
+		orthoProj(width, height);
+	}
+	else
+	{
+		prespectiveProj();
+	}
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
 }
 
 /**
@@ -273,7 +265,7 @@ void cleanup()
 {
 	DataAcquisition::freeData(data, columns);
 	delete contours;
-	//delete palette;
+	delete camera;
 }
 
 /**
@@ -302,13 +294,13 @@ Helper::instance().START_PROFILING(PROFILE_FILE);
 	// Get data before starting any graphics
 	std::string fileName = DATA_FILE("honolulu_raw.txt"); //argv[1];
 	data = DataAcquisition::getData(fileName, &rows, &columns);
-	//palette = new Palette();
 	contours = new Contours(data, columns, rows, 960, 0);
+	camera = new Camera();
 
-	setup();
 	glutInit(&argc, argv);
 
 	glutInitWindowSize(500, 500);
+	width = 500; height = 500;
 	glutCreateWindow(fileName.c_str());
 
 	// Registering callbacks
@@ -316,7 +308,6 @@ Helper::instance().START_PROFILING(PROFILE_FILE);
 	glutDisplayFunc(display);
 	glutKeyboardFunc(keyboardFunc);
 	glutSpecialFunc(specialFunc);
-	glutIdleFunc(idleFunc);
 
 	glClearColor(0.0,0.0,0.0,1.0);
 	glColor3f(1.0,1.0,1.0);

@@ -1,12 +1,14 @@
 #pragma once
 
+#include "Palette.h"
+
 #ifdef __APPLE__
 #include <GLUT/glut.h>
 #else
 #include <GL/glut.h>
 #endif
 
-#include <map>
+#include <vector>
 
 /* region size */
 #define X_MAX 1.0
@@ -18,6 +20,25 @@
 #define INITIAL_THRESHOLD 0
 #define HEIGHT_SCALE 0.35
 
+// @see http://stackoverflow.com/questions/12008059/find-if-and-stdpair-but-just-one-element
+struct CompareFirst
+{
+  CompareFirst(int val) : val_(val) {}
+  bool operator()(const std::pair<int, std::pair<int, float*> >& elem) const {
+    return val_ == elem.first;
+  }
+  private:
+    int val_;
+};
+
+/**
+* The class Contours calculates the contours and stores them in an appropriate data structure.
+* One dubling the number of contours, only the new ones are calculated and the opposite is true
+* when halving the number of contours.
+* By storing the contours once, the draw method is significantly more efficient. 
+* In addition, the draw method uses drawArrays rather than multiple calls to glVertex3f. 
+* This is another improvements that it is possible to observe when moving around the model, for example.
+*/
 class Contours
 {
 public:
@@ -31,21 +52,33 @@ public:
 	*/
 	void changeNumberContours(bool doubleNumberContours);
 
+	/**
+	* Draw all contours
+	*/
 	void draw();
 
+	/**
+	* Return the number of current contours
+	*/
 	unsigned int getNumberContours() { return this->_numberContours; }
 
+	/**
+	* Change the color of the contours
+	*/
+	void changeColor();
+
 private:
+	Palette* _palette;
+
 	int _xCells;
 	int _yCells;
 	
 	int** _data;
 
 	/*
-	* Map height to (number of vertices, vertices)
-	* 
+	* Vector of (height, (number of vertices, vertices))
 	*/
-	std::map< int, std::pair<int, float*> > _contoursData;
+	std::vector< std::pair<int, std::pair<int, float*> > > _contoursData;
 
 	unsigned int _numberContours;
 	unsigned int _columns;
@@ -64,12 +97,16 @@ private:
 	void removeContours();
 
 	/**
-	*
+	* Returns the number of vertices for a given marching square case
+	* @param num 	marching square case
+	* @return 		number of vertices
 	*/
 	unsigned int numberVertices(unsigned int num);
 
 	/**
-	* 
+	* Returns the marching square case for a given height and 4 sample points
+	* @param height
+	* @param a, b, c, d 	sample points
 	*/
 	unsigned int cell(unsigned int height, double a, double b, double c , double d);
 
@@ -87,7 +124,7 @@ private:
 
 	void draw_adjacent(unsigned int height, float scaledHeight, float* vertices, unsigned int totalNumberLines,
 					unsigned int num, int i, int j, double a, double b, double c, double d);
-	
+
 	void draw_opposite(unsigned int height, float scaledHeight, float* vertices, unsigned int totalNumberLines,
 					unsigned int num, int i, int j, double a, double b, double c, double d);
 };

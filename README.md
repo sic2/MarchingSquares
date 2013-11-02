@@ -44,10 +44,14 @@ Generate gif callgraph
 # TODO
 
 	[] Perspective projection
-	[] Predefined camera locations
 	[] Camera dynamic path
-	[] Predefined set of colors
+	[] Create an extended set of predefined locations of the camera
+	[] Create more color schemes
+	[] Calculate contour's color once rather than every time
 
+# Known bugs
+
+	NONE
 
 # Requirements
 

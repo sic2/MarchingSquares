@@ -1,66 +1,104 @@
 #pragma once
 
+#include <stdio.h>
+#include <cmath>
+
 class Color
 {
 public:
-	inline Color(float redBase, float greenBase, float blueBase, float redTop, float greenTop, float blueTop)
+	inline Color(float red, float green, float blue)
 	{
-		this->redBase = redBase;
-		this->greenBase = greenBase;
-		this->blueBase = blueBase;
-
-		this->redTop = redTop;
-		this->greenTop = greenTop;
-		this->blueTop = blueTop;
+		this->red = red;
+		this->green = green;
+		this->blue = blue;
 	}
 
 	virtual ~Color() {}
 
-	float redBase;
-	float greenBase;
-	float blueBase;
-
-	float redTop;
-	float greenTop;
-	float blueTop;
+	float red;
+	float green;
+	float blue;
 };
 
-#define NUMBER_COLOR_SCALES 3
+#define NUMBER_COLOR_SCALES 2
+#define STANDARD_COLOR_SCALE 0
+#define RED_BLUE_COLOR_SCALE 1
+
+const float scalingFactor = 1.57f;
 
 class Palette
 {
 public:
-	inline Palette()
+	inline Palette(int minHeight, int maxHeight)
 	{
 		_index = 0;
+
+		this->_minHeight = minHeight;
+		this->_maxHeight = maxHeight;
+
+		_justConstructed = true;
 	}
 
-	virtual ~Palette() {}
+	inline virtual ~Palette() 
+	{
+		delete _color;
+	}
 
-	inline Color* nextColorScale()
+	/**
+	* Updates the palette to the next color scheme
+	*/
+	inline void nextColorScale()
 	{
 		_index++;
 		_index = _index % NUMBER_COLOR_SCALES;
-//		printf("index is %d\n", _index);
+	}
+
+	/**
+	* Height is mapped to a different color for a given color scale.
+	* @param height of the contour
+	* @return color
+	*/
+	inline Color* getColor(float height)
+	{
+		float h = height * scalingFactor;
+
+		Color* color;
+		float red = 0.0f; 
+		float green = 0.0f; 
+		float blue = 0.0f;
+
 		switch(_index)
 		{
-			case 0:
-				return new Color(1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+			case STANDARD_COLOR_SCALE:
+				red = sin(h);
+				green = cos(h);
+				color = new Color(red, green, blue);
 			break;
-			case 1:
-				return new Color(0.0, 1.0, 0.0, 1.0, 0.0, 0.0);
-			break;
-			case 2:
-				return new Color(1.0, 0.0, 0.0, 0.0, 1.0, 1.0);
+			case RED_BLUE_COLOR_SCALE:
+				red = sin(h);
+				blue = cos(h);
+				color = new Color(red, green, blue);
 			break;
 			default:
 				printf("palette index unknown\n");
 			break;
 		}
+		if (!_justConstructed)
+			delete _color;
 
-		return new Color(1.0, 1.0, 1.0, 0.0, 0.0, 0.0);
+		_justConstructed = false;
+		_color = color;
+		return color;
 	}
 
 private: 
+
+	bool _justConstructed;
+
 	int _index;
+
+	int _minHeight;
+	int _maxHeight;
+
+	Color* _color;
 };
