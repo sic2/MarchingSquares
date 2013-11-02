@@ -36,8 +36,6 @@ Contours::~Contours()
 /*
  * Calculate the vertices for all the contours once, 
  * until these change.
- *
- * NOTE: bug on halving the number of contours
  */
 void Contours::changeNumberContours(bool doubleNumberContours)
 {
