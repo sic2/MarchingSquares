@@ -66,12 +66,12 @@ private:
 	/**
 	*
 	*/
-	unsigned int numberVertices(int num);
+	unsigned int numberVertices(unsigned int num);
 
 	/**
 	* 
 	*/
-	int cell(unsigned int height, double a, double b, double c , double d);
+	unsigned int cell(unsigned int height, double a, double b, double c , double d);
 
 	/**
 	*
@@ -79,13 +79,15 @@ private:
 	*	Vertices are calculated only once per threshold, unless the 
 	* 	overall model threshold is reset.
 	*/
-	void lines(unsigned int height, float* vertices, unsigned int totalNumberLines,
-					int num, int i, int j, double a, double b, double c, double d);
+	void lines(unsigned int height, float scaledHeight, float* vertices, unsigned int totalNumberLines,
+				unsigned int num, int i, int j, double a, double b, double c, double d);
 
-	void draw_one(unsigned int height, float* vertices, unsigned int totalNumberLines, 
-		int num, int i, int j, double a, double b, double c, double d);
-	void draw_adjacent(unsigned int height, float* vertices, unsigned int totalNumberLines,
-		int num, int i, int j, double a, double b, double c, double d);
-	void draw_opposite(unsigned int height, float* vertices, unsigned int totalNumberLines,
-		int num, int i, int j, double a, double b, double c, double d);
+	void draw_one(unsigned int height, float scaledHeight, float* vertices, unsigned int totalNumberLines, 
+					unsigned int num, int i, int j, double a, double b, double c, double d);
+
+	void draw_adjacent(unsigned int height, float scaledHeight, float* vertices, unsigned int totalNumberLines,
+					unsigned int num, int i, int j, double a, double b, double c, double d);
+	
+	void draw_opposite(unsigned int height, float scaledHeight, float* vertices, unsigned int totalNumberLines,
+					unsigned int num, int i, int j, double a, double b, double c, double d);
 };

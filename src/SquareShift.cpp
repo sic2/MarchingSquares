@@ -39,14 +39,14 @@
 #define CLOSE_ANGULAR_SIGN 62
 
 const float RADIANS_ACCURACY = 0.1f;
-const float SCALING_FACTOR = 0.8f;
+const float SCALING_FACTOR = 0.5f;
 const float RADIANS_TO_DEGREES = 57.2957795f;
 const float TEXT_POSITION_X = 0.3f;
 const float TEXT_POSITION_Y = 0.92f;
 
 int** data;
-int rows;
-int columns;
+unsigned int rows;
+unsigned int columns;
 
 Contours* contours;
 //Palette* palette;

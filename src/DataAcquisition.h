@@ -14,7 +14,7 @@ public:
 	* @param columns [OUT]
 	* @return data to be displayed as int[columns][rows]
 	*/
-	inline static int** getData(std::string fileName, int* rows, int* columns)
+	inline static int** getData(std::string fileName, unsigned int* rows, unsigned int* columns)
 	{
 		int** retval;
 
@@ -35,10 +35,10 @@ public:
 
 			    // Initialise data array
 			    retval = (int**) malloc(*columns * sizeof(int*));  
-				for (int i = 0; i < *columns; i++) retval[i] = (int*) malloc(*rows * sizeof(int));  
+				for (unsigned int i = 0; i < *columns; ++i) retval[i] = (int*) malloc(*rows * sizeof(int));  
 
-			    int row = 0;
-			    int column = 0;
+			    unsigned int row = 0;
+			    unsigned int column = 0;
 			    while(lineStream >> token)
 			    {
 			        retval[column][row] = atoi(token.c_str());
@@ -63,9 +63,9 @@ public:
 	/**
 	* Free data
 	*/
-	inline static void freeData(int** data, int columns)
+	inline static void freeData(int** data, unsigned int columns)
 	{
-		for (int i = 0; i < columns; i++) free(data[i]);
+		for (unsigned int i = 0; i < columns; ++i) free(data[i]);
 		free(data);
 	}
 };

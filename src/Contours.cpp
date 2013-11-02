@@ -4,7 +4,6 @@
 #include <algorithm>
 
 #define INITIAL_NUMBER_CONTOURS 8
-#define MULTIPLICATOR_FACTOR 2
 
 Contours::Contours(int** data, unsigned int columns, unsigned int rows, int maxHeight, int minHeight)
 {
@@ -37,17 +36,21 @@ Contours::~Contours()
  */
 void Contours::changeNumberContours(bool doubleNumberContours)
 {
+	/*
+	* Even if compilers usually optimise multiplications and divisions by 2,
+	* it is always good practice to do this within the source code.
+	*/
 	if (doubleNumberContours)
 	{
-		this->_numberContours *= MULTIPLICATOR_FACTOR;
+		this->_numberContours <<= 1;
 		addContours();
 	}
 	else
 	{
-		this->_numberContours /= MULTIPLICATOR_FACTOR;
-		if (this->_numberContours < MULTIPLICATOR_FACTOR)
+		this->_numberContours >>= 1;
+		if (this->_numberContours < 2)
 		{
-			this->_numberContours *= MULTIPLICATOR_FACTOR;
+			this->_numberContours <<= 1;
 		}
 		else
 		{
@@ -63,11 +66,11 @@ void Contours::addContours()
 	for(int height = _minHeight; height < _maxHeight; height += heightOffset)
 	{
 		// If data about this height is already in the map, then skip it.
-		if (_contoursData.size() > 0 && (_contoursData.find(height) != _contoursData.end())) continue; // FIXME
+		if (_contoursData.size() > 0 && (_contoursData.find(height) != _contoursData.end())) continue;
 
 		// Calculate the total number of lines for this contour.
 		unsigned int totalNumberVertices = 0; 
-		for(i = 0; i < _columns; i++) for (j = 0; j < _rows; j++) 
+		for(i = 0; i < _columns; ++i) for (j = 0; j < _rows; ++j) 
 	    {
 			if (i + 1 != _columns && j + 1 != _rows)
 			{
@@ -75,18 +78,31 @@ void Contours::addContours()
 			}
 		}
 		
-		int c;
+		unsigned int CASE;
+		float scaledHeight = height / 960.0; // FIXME 
 		float* vertices = new float[3 * totalNumberVertices];
 		unsigned int totalNumberCoordinates = 0; // Reset the total number of lines calculated.
-		for(i = 0; i < _columns; i++) for (j = 0; j < _rows; j++)  // Calculate the lines for this contour.
+		for(i = 0; i < _columns; ++i) for (j = 0; j < _rows; ++j)  // Calculate the lines for this contour.
 	    {
 			if (i + 1 != _columns && j + 1 != _rows)
 			{
-				c = cell(height, _data[i][j], _data[i+1][j], _data[i+1][j+1], _data[i][j+1]);
-				
-				lines(height, vertices, totalNumberCoordinates, 
-					  c,i,j, _data[i][j], _data[i+1][j], _data[i+1][j+1], _data[i][j+1]);
-				totalNumberCoordinates += numberVertices(c) * 3;
+				/*
+				 * Access array values once, reducing memory fetching.
+				 * While this may not significant when fetching 
+				 * array[i][j] and then array[i][j+1], since they are adjacent,
+				 * it may make the difference when accessing
+				 * array[i][j] and then array[i+1][j] since they are not adjacent 
+				 * and therefore there is scarse spatial locality.
+				 */
+				int value_ij = _data[i][j];
+				int value_i1j = _data[i+1][j];
+				int value_i1j1 = _data[i+1][j+1];
+				int value_ij1 = _data[i][j+1];
+
+				CASE = cell(height, value_ij, value_i1j, value_i1j1, value_ij1);
+				lines(height, scaledHeight, vertices, totalNumberCoordinates, 
+					  CASE, i, j, value_ij, value_i1j, value_i1j1, value_ij1);
+				totalNumberCoordinates += numberVertices(CASE) * 3;
 			}
 		}
 		_contoursData.insert(std::pair<int, std::pair<int, float*> > (height, std::make_pair<int, float*> (totalNumberVertices, vertices)));
@@ -100,12 +116,20 @@ void Contours::removeContours()
 	for(int height = _minHeight; height < _maxHeight; height += heightOffset)
 	{
 		heights.push_back(height);
+
+		// Sort complexity is N*log(N)
+		// @see http://www.cplusplus.com/reference/algorithm/sort/
+		// Performing this operation at every insertion reduces the total sorting time.
+		std::sort(heights.begin(), heights.end());
 	}
 
 	for(std::map< int, std::pair<int, float*> >::iterator iter = _contoursData.begin(); 
 		iter != _contoursData.end(); ++iter)
 	{
-		if (std::find(heights.begin(), heights.end(), iter->first) != heights.end()) continue;
+		// If found, then do not delete the element.
+		// The array heights is assumed to be ordered given that sort was called on every
+		// insertion operation previously.
+		if (std::binary_search (heights.begin(), heights.end(), iter->first)) continue;
 
 		delete _contoursData[iter->first].second;
 		_contoursData.erase(iter->first);
@@ -134,7 +158,7 @@ void Contours::draw()
  * PRIVATE METHODS
  */
 
-int Contours::cell(unsigned int height, double a, double b, double c , double d)
+unsigned int Contours::cell(unsigned int height, double a, double b, double c , double d)
 {
 	int n = 0;
 	if(a > height) n+=1;
@@ -144,7 +168,7 @@ int Contours::cell(unsigned int height, double a, double b, double c , double d)
 	return n;
 }
 
-unsigned int Contours::numberVertices(int num)
+unsigned int Contours::numberVertices(unsigned int num)
 {
 	unsigned int retval = 0;
 	switch(num)
@@ -159,26 +183,26 @@ unsigned int Contours::numberVertices(int num)
 	return retval;
 }
 
-void Contours::lines(unsigned int height, float* vertices, unsigned int totalNumberLines,
-					int num, int i, int j, double a, double b, double c, double d)
+void Contours::lines(unsigned int height, float scaledHeight, float* vertices, unsigned int totalNumberLines,
+					unsigned int num, int i, int j, double a, double b, double c, double d)
 {
 	 switch(num)
 	 {
 	 case 1: case 2: case 4: case 7: case 8: case 11: case 13: case 14: 
-		draw_one(height, vertices, totalNumberLines, num, i,j,a,b,c,d); 
+		draw_one(height, scaledHeight, vertices, totalNumberLines, num, i,j,a,b,c,d); 
 		break;
 	 case 3: case 6: case 9: case 12: 
-	    draw_adjacent(height, vertices, totalNumberLines, num,i,j,a,b,c,d); 
+	    draw_adjacent(height, scaledHeight, vertices, totalNumberLines, num,i,j,a,b,c,d); 
 		break;
 	 case 5: case 10: 
-		draw_opposite(height, vertices, totalNumberLines, num, i,j,a,b,c,d); 
+		draw_opposite(height, scaledHeight, vertices, totalNumberLines, num, i,j,a,b,c,d); 
 		break;
 	 case 0: case 15: break;
 	 }
 }
 
-void Contours::draw_one(unsigned int height, float* vertices, unsigned int totalNumberLines,
-	int num, int i, int j, double a, double b, double c, double d)
+void Contours::draw_one(unsigned int height, float scaledHeight, float* vertices, unsigned int totalNumberLines,
+	unsigned int num, int i, int j, double a, double b, double c, double d)
 {
   float x1 = 0.0, y1 = 0.0, x2 = 0.0, y2 = 0.0;
   float ox, oy;
@@ -217,25 +241,25 @@ void Contours::draw_one(unsigned int height, float* vertices, unsigned int total
 
 	vertices[totalNumberLines] = x1;
 	vertices[totalNumberLines + 1] = y1;
-	vertices[totalNumberLines + 2] = height / 960.0; // FIXME - scale only once
+	vertices[totalNumberLines + 2] = scaledHeight;
 
 	vertices[totalNumberLines + 3] = x2;
 	vertices[totalNumberLines + 4] = y2;
-	vertices[totalNumberLines + 5] = height / 960.0;
+	vertices[totalNumberLines + 5] = scaledHeight;
 }
 
-void Contours::draw_adjacent(unsigned int height, float* vertices, unsigned int totalNumberLines,
-	int num, int i, int j, double a, double b, double c, double d)
+void Contours::draw_adjacent(unsigned int height, float scaledHeight, float* vertices, unsigned int totalNumberLines,
+	unsigned int num, int i, int j, double a, double b, double c, double d)
 {
-  float x1 = 0.0, y1 = 0.0, x2 = 0.0, y2 = 0.0;
-  float ox, oy;
-  float dx, dy;
-  dx=(X_MAX-(X_MIN))/(_xCells-1.0);
-  dy=(Y_MAX-(Y_MIN))/(_yCells-1.0);
-  ox=X_MIN+i*(X_MAX-(X_MIN))/(_xCells-1.0);
-  oy=Y_MIN+j*(Y_MAX-(Y_MIN))/(_yCells-1.0);
-  switch(num)
-  {
+	float x1 = 0.0, y1 = 0.0, x2 = 0.0, y2 = 0.0;
+	float ox, oy;
+	float dx, dy;
+	dx=(X_MAX-(X_MIN))/(_xCells-1.0);
+	dy=(Y_MAX-(Y_MIN))/(_yCells-1.0);
+	ox=X_MIN+i*(X_MAX-(X_MIN))/(_xCells-1.0);
+	oy=Y_MIN+j*(Y_MAX-(Y_MIN))/(_yCells-1.0);
+	switch(num)
+	{
 	case 3: case 12:
 	  x1=ox+dx*(height-a)/(b-a);
 	  y1=oy;
@@ -248,19 +272,19 @@ void Contours::draw_adjacent(unsigned int height, float* vertices, unsigned int 
 	  x2=ox+dx;
 	  y2=oy+dy*(height-b)/(c-b);
 	  break;
-  }
+	}
 
 	vertices[totalNumberLines] = x1;
 	vertices[totalNumberLines + 1] = y1;
-	vertices[totalNumberLines + 2] = height / 960.0;
+	vertices[totalNumberLines + 2] = scaledHeight;
 
 	vertices[totalNumberLines + 3] = x2;
 	vertices[totalNumberLines + 4] = y2;
-	vertices[totalNumberLines + 5] = height / 960.0;
+	vertices[totalNumberLines + 5] = scaledHeight;
 
 }
-void Contours::draw_opposite(unsigned int height, float* vertices, unsigned int totalNumberLines,
-	int num, int i, int j, double a, double b, double c, double d)
+void Contours::draw_opposite(unsigned int height, float scaledHeight, float* vertices, unsigned int totalNumberLines,
+	unsigned int num, int i, int j, double a, double b, double c, double d)
 {
   float x1 = 0.0,y1 = 0.0,x2 = 0.0,y2 = 0.0,x3 = 0.0,y3 = 0.0,x4 = 0.0,y4 = 0.0;
   float ox, oy;
@@ -295,17 +319,17 @@ void Contours::draw_opposite(unsigned int height, float* vertices, unsigned int 
 
 	vertices[totalNumberLines] = x1;
 	vertices[totalNumberLines + 1] = y1;
-	vertices[totalNumberLines + 2] = height / 960.0;
+	vertices[totalNumberLines + 2] = scaledHeight;
 
 	vertices[totalNumberLines + 3] = x2;
 	vertices[totalNumberLines + 4] = y2;
-	vertices[totalNumberLines + 5] = height / 960.0;
+	vertices[totalNumberLines + 5] = scaledHeight;
 
 	vertices[totalNumberLines + 6] = x3;
 	vertices[totalNumberLines + 7] = y3;
-	vertices[totalNumberLines + 8] = height / 960.0;
+	vertices[totalNumberLines + 8] = scaledHeight;
 
 	vertices[totalNumberLines + 9] = x4;
 	vertices[totalNumberLines + 10] = y4;
-	vertices[totalNumberLines + 11] = height / 960.0;
+	vertices[totalNumberLines + 11] = scaledHeight;
 }
