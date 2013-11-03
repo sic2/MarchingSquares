@@ -300,7 +300,7 @@ Helper::instance().START_PROFILING(PROFILE_FILE);
 	}
 
 	// Get data before starting any graphics
-	std::string fileName = DATA_FILE("nmtopo_raw.txt"); //argv[1];
+	std::string fileName = DATA_FILE("honolulu_raw.txt"); //argv[1];
 	data = DataAcquisition::getData(fileName, &rows, &columns, &minHeight, &maxHeight);
 	contours = new Contours(data, columns, rows, minHeight, maxHeight);
 	camera = new Camera();

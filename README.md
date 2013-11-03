@@ -22,6 +22,9 @@ Clean all compiled files + any profiling data file:
 
 	$ make clean
 
+Clean, Compile and Run:
+
+	$ make clean && make release && ./squareShift
 
 # Profiling
 
