@@ -46,7 +46,6 @@ Generate gif callgraph
 	[] Camera dynamic path
 	[] Create an extended set of predefined locations of the camera
 	[] Create more color schemes
-	[] Calculate contour's color once rather than every time
 	[] If number of contours cannot be halved, than set to max
 	[] Create menus
 	[] Info panel

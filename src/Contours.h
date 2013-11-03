@@ -20,16 +20,40 @@
 #define INITIAL_THRESHOLD 0
 #define HEIGHT_SCALE 0.35
 
+class Contour
+{
+public:
+	inline Contour(int height, int numberVertices, float* vertices, float* colors)
+	{
+		this->height = height; 
+		this->numberVertices = numberVertices;
+		this->vertices = vertices;
+		this->colors = colors;
+	}
+
+	inline virtual ~Contour()
+	{
+		delete vertices;
+		delete colors;
+	}
+
+	int height;
+	int numberVertices;
+	float* vertices;
+	float* colors;
+};
+
 // @see http://stackoverflow.com/questions/12008059/find-if-and-stdpair-but-just-one-element
 struct CompareFirst
 {
   CompareFirst(int val) : val_(val) {}
-  bool operator()(const std::pair<int, std::pair<int, float*> >& elem) const {
-    return val_ == elem.first;
+  bool operator()(const Contour* elem) const {
+    return val_ == elem->height;
   }
   private:
     int val_;
 };
+
 
 /**
 * The class Contours calculates the contours and stores them in an appropriate data structure.
@@ -78,7 +102,7 @@ private:
 	/*
 	* Vector of (height, (number of vertices, vertices))
 	*/
-	std::vector< std::pair<int, std::pair<int, float*> > > _contoursData;
+	std::vector< Contour* > _contoursData;
 
 	unsigned int _numberContours;
 	unsigned int _columns;
