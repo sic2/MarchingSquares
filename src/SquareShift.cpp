@@ -37,6 +37,9 @@
 #define OPEN_ANGULAR_SIGN 60
 #define CLOSE_ANGULAR_SIGN 62
 
+/*
+* Constants
+*/
 const float RADIANS_ACCURACY = 0.1f;
 const float SCALING_FACTOR = 0.8f; // Scales all model
 const float RADIANS_TO_DEGREES = 57.2957795f;
@@ -45,25 +48,32 @@ const float TEXT_POSITION_Y = 0.92f;
 const float ZOOM_FACTOR = 0.01;
 const float PERSPECTIVE_ANGLE_OF_VIEW = 60;
 
+/*
+* Global variables
+*/
+// DATA
 int** data;
 unsigned int rows;
 unsigned int columns;
-
-Contours* contours;
-Camera* camera;
-
 int minHeight;
 int maxHeight;
 
+// Application objects
+Contours* contours;
+Camera* camera;
+
+// Model position values
 float zRadians = 0.0;
 float xRadians = 0.0;
 float radians;
 float xVect, yVect, zVect;
 float zZoom = 1.0;
 
+// View settings
 bool useOrthoProj = true;
 bool usePredefinedCamera = false;
 
+// Window dimensions
 int width, height;
 
 /*

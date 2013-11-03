@@ -108,12 +108,9 @@ void Contours::addContours()
 
 		// Calculate the total number of lines for this contour.
 		unsigned int totalNumberVertices = 0; 
-		for(i = 0; i < _columns; ++i) for (j = 0; j < _rows; ++j) 
+		for(i = 0; i < _columns - 1; ++i) for (j = 0; j < _rows - 1; ++j) 
 	    {
-			if (i + 1 != _columns && j + 1 != _rows)
-			{
-				totalNumberVertices += numberVertices(cell(height, _data[i][j], _data[i+1][j], _data[i+1][j+1], _data[i][j+1]));
-			}
+			totalNumberVertices += numberVertices(cell(height, _data[i][j], _data[i+1][j], _data[i+1][j+1], _data[i][j+1]));
 		}
 		
 		// Calculate this value here once, rather than multiple times.
@@ -182,11 +179,19 @@ void Contours::removeContours()
 
 unsigned int Contours::cell(unsigned int height, double a, double b, double c , double d)
 {
-	int n = 0;
-	if(a > height) n+=1;
-	if(b > height) n+=8;
-	if(c > height) n+=4;
-	if(d > height) n+=2;
+	/*
+	 * Height is cast to double, so that comparison with parameters a, b, c, d
+	 * is faster. 
+	 * On profiling with pprof I observed that the function cell, on comparing 
+	 * integers with double, took about 28-30% of the time within the callee #addContours() 
+	 * However, by casting height to double a reduction of about 6-8% was observed.
+	 */
+	double h = height; 
+	unsigned int n = 0;
+	if(a > h) n+=1;
+	if(b > h) n+=8;
+	if(c > h) n+=4;
+	if(d > h) n+=2;
 	return n;
 }
 
