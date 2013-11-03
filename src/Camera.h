@@ -56,13 +56,18 @@ public:
 		return getCameraLocation();
 	}
 
+	// inline std::vector< Rotation > getDynamicPath()
+	// {
+	// 	// TODO
+	// }
+
 private:
 	int _index;
 
 	inline std::vector< Rotation > getCameraLocation()
 	{
 		std::vector< Rotation > rotations;
-		Rotation r_0, r_1, r_2;
+		Rotation r_0, r_1;
 		switch(_index)
 		{
 			case CAMERA_LOCATION_ZERO: 

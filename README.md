@@ -48,7 +48,7 @@ Generate gif callgraph
 
 	[] Camera dynamic path
 	[/] Create an extended set of predefined locations of the camera
-	[] If number of contours cannot be halved, than set to max
+	[-] If number of contours cannot be halved, than set to max
 	[] Create menus
 	[] Info panel
 	[] Be able to pick a contour, color it and display info about it

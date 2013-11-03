@@ -9,6 +9,7 @@
 #endif
 
 #include <vector>
+#include <map>
 
 /* region size */
 #define X_MAX 1.0
@@ -20,6 +21,15 @@
 #define INITIAL_THRESHOLD 0
 #define HEIGHT_SCALE 0.35
 
+/**
+* Contour represent a contour in an easy and fast way to render
+* using glDrawArrays. 
+* The following data are stored per contour:
+*	- height
+* 	- number of vertices making up this contour
+* 	- an array of vertices
+* 	- an array of colors (mapping the vertices)
+*/
 class Contour
 {
 public:
@@ -91,6 +101,13 @@ public:
 	*/
 	void changeColor();
 
+	/*
+	* Update the color of the picked contour
+	* @param ID of picked contour
+	* @return the height of the picked contour
+	*/
+	unsigned int updatePickedContour(unsigned int ID);
+
 private:
 	Palette* _palette;
 
@@ -109,6 +126,17 @@ private:
 	unsigned int _rows;
 	int _maxHeight;
 	int _minHeight;
+
+	/*
+	* Mapping a unique ID to a contour. 
+	* 
+	* Note that even if this is a second data structure, other than _contoursData,
+	* keeping track of the Contours, there is no much overhead in memory usage
+	* since only pointers to contours are stored in these data structures. 
+	*/
+	std::map < unsigned int, Contour* > _idToContours;
+
+	unsigned int _nextID;
 
 	/*
 	* Add contours if necessary

@@ -3,6 +3,9 @@
 #include <stdio.h>
 #include <cmath>
 
+/**
+* Color - RGB
+*/
 class Color
 {
 public:
@@ -20,11 +23,12 @@ public:
 	float blue;
 };
 
+// Some constant definitions
 #define NUMBER_COLOR_SCALES 4
 #define STANDARD_COLOR_SCALE 0
 #define RED_BLUE_COLOR_SCALE 1
 #define GREY_COLOR_SCALE 2
-// Works for Honolulu map only
+// Works well for Honolulu map only
 #define CARTO_COLOR_SCALE 3 
 
 const float scalingFactor = 1.57f;

@@ -17,6 +17,8 @@ Contours::Contours(int** data, unsigned int columns, unsigned int rows, int minH
 	_yCells = rows + WINDOW_OFFSET;
 
 	_palette = new Palette(_minHeight, _maxHeight);
+	
+	_nextID = 0;
 
 	addContours();
 }
@@ -36,8 +38,6 @@ Contours::~Contours()
 /*
  * Calculate the vertices for all the contours once, 
  * until these change.
- *
- * Note: if _numberContours > heightLimit the Application crashes
  */
 void Contours::changeNumberContours(bool doubleNumberContours)
 {
@@ -48,6 +48,10 @@ void Contours::changeNumberContours(bool doubleNumberContours)
 	if (doubleNumberContours)
 	{
 		this->_numberContours <<= 1; // multiply by two
+		if ((int) this->_numberContours > this->_maxHeight)
+		{
+			this->_numberContours >>= 1; // divide by two
+		}
 		addContours();
 	}
 	else
@@ -80,7 +84,10 @@ void Contours::draw()
 		Contour* contour = (*iter);
 		glColorPointer(3, GL_FLOAT, 0, contour->colors);
 		glVertexPointer(3, GL_FLOAT, 0, contour->vertices);
+
+		// glPushName(ID); -- TODO
 		glDrawArrays(GL_LINES, 0, contour->numberVertices);
+		// glPopName();
 	}
 	glDisableClientState( GL_COLOR_ARRAY );
 	glDisableClientState( GL_VERTEX_ARRAY );
@@ -113,7 +120,7 @@ void Contours::changeColor()
 void Contours::addContours()
 {
 	int heightOffset = (_maxHeight - _minHeight) / (this->_numberContours * 1.0);
-	if (heightOffset % 2 != 0) heightOffset++;
+	if (heightOffset % 2 != 0) heightOffset++; // Correct division of odd numbers
 
 	unsigned int i, j;
 	for(int height = _minHeight; height < _maxHeight; height += heightOffset)
@@ -185,7 +192,8 @@ void Contours::removeContours()
 	* Free previously allocated memory, then erase elements in vector
 	*/
 	unsigned int half = _contoursData.size() >> 1;
-	for(std::vector< Contour* >::iterator iter = _contoursData.begin() + half; 
+	if (half % 2 != 0) ++half; // Correct division of odd numbers
+  	for(std::vector< Contour* >::iterator iter = _contoursData.begin() + half; 
 		iter != _contoursData.end(); ++iter)
 	{
 		delete (*iter);

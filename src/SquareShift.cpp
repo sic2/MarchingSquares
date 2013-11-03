@@ -38,6 +38,17 @@
 #define CLOSE_ANGULAR_SIGN 62
 
 /*
+* Picking constants
+*/
+#define PICK_TOLLERANCE 5
+// Keep the pick buffer small, since not many objects will probably be drawn 
+// for a small area as defined by 
+// PICK_TOLLERANCE * PICK_TOLLERANCE
+#define PICK_BUFFER_SIZE 16
+#define NO_HITS 0
+#define HITS_OFFSET 3
+
+/*
 * Constants
 */
 const float RADIANS_ACCURACY = 0.1f;
@@ -75,6 +86,9 @@ bool usePredefinedCamera = false;
 // Window dimensions
 int width, height;
 
+// Picking
+unsigned int pickBuffer[PICK_BUFFER_SIZE];
+
 /*
 * Preprocessors
 */
@@ -93,8 +107,8 @@ void prespectiveProj(int w, int h);
 void setup(int w, int h);
 void cleanup();
 void shutDown();
-void writeBitmapString(void *font, std::string str);
-std::string integerToString(int value);
+void processPicks(GLint hits, GLuint buffer[], int x, int y);
+void picking(int x, int y);
 
 /* ----------- *
  *  Functions  *
@@ -238,13 +252,74 @@ void specialFunc(int key, int x, int y)
 // @see http://stackoverflow.com/questions/14378/using-the-mouse-scrollwheel-in-glut
 void mouse(int button, int state, int x, int y)
 {
-	// Wheel reports as button 3(scroll up) and button 4(scroll down)
-	if ((button == 3) || (button == 4)) // It's a wheel event
+	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
+	{	
+		picking(x, y);
+	}
+	else if ((button == 3) || (button == 4)) // Wheel reports as button 3(scroll up) and button 4(scroll down)
 	{
 		if (state == GLUT_UP) return; // Disregard redundant GLUT_UP events
 		(button == 3) ? zZoom -= ZOOM_FACTOR : zZoom += ZOOM_FACTOR;
 	}
 	glutPostRedisplay();
+}
+
+/*  
+ * processPicks prints out the contents of the
+ * selection array
+ * 
+ * Note: this is the exact same function used in practical 2.
+ */
+void processPicks(GLint hits, GLuint buffer[], int x, int y)
+{
+	if (hits > (int) NO_HITS)
+	{
+		// elementIsPicked = true;
+	}
+	GLuint items;
+	GLuint *index;
+
+	index = (GLuint *)buffer;
+	for (unsigned int i = 0; i < (unsigned int) hits; ++i)
+	{ 
+		items = *index;
+		index += (int) HITS_OFFSET; // skip zmin and zmax
+		for (unsigned int j = 0; j < items; ++j)
+		{ 
+			// _sketchEnvironment.processPick((*index), x, y, coordinatesTransform(x, y));
+			index++; // next hit
+		}
+	}
+}
+
+/*
+* Note: this is the exact same function used in practical 2.
+*/
+void picking(int x, int y)
+{
+	GLint viewport[4];
+	glGetIntegerv(GL_VIEWPORT, viewport);
+
+	glSelectBuffer(PICK_BUFFER_SIZE, pickBuffer);
+	glRenderMode(GL_SELECT);
+
+	glInitNames();
+
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadIdentity();
+
+	gluPickMatrix((GLdouble) x, (GLdouble) (viewport[3] - y), PICK_TOLLERANCE, PICK_TOLLERANCE, viewport);
+	gluOrtho2D(-1.0, 1.0, -1.0, 1.0); // FIXME
+
+	//redrawAllElements = true;
+	//displayFunc();
+
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+	glFlush();
+
+	processPicks(glRenderMode(GL_RENDER), pickBuffer, x, y);
 }
 
 /**
