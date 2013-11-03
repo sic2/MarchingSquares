@@ -23,7 +23,7 @@
 class Contour
 {
 public:
-	inline Contour(int height, int numberVertices, float* vertices, float* colors)
+	inline Contour(int height, unsigned int numberVertices, float* vertices, float* colors)
 	{
 		this->height = height; 
 		this->numberVertices = numberVertices;
@@ -38,7 +38,7 @@ public:
 	}
 
 	int height;
-	int numberVertices;
+	unsigned int numberVertices;
 	float* vertices;
 	float* colors;
 };

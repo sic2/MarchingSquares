@@ -1,10 +1,24 @@
 #pragma once
 
+#include <vector>
+
 #define NUMBER_CAMERA_LOCATIONS 3
 #define CAMERA_LOCATION_ZERO 0 
 #define CAMERA_LOCATION_ONE 1
 #define CAMERA_LOCATION_TWO 2
 
+typedef struct Rotation
+{
+	float angle;
+	float x;
+	float y; 
+	float z;
+} Rotation;
+
+/*
+* TODO - return pair <string, vector < Rotation> >
+* where string is name of camera
+*/
 class Camera
 {
 public:
@@ -20,11 +34,11 @@ public:
 	* @param angle [OUT] - angle of rotation in radians
 	* @param x, y, z [OUT] - coordinates of a vector about which rotation happens
 	*/
-	inline void getNextCameraLocation(float* angle, float* x, float* y, float* z)
+	inline std::vector< Rotation > getNextCameraLocation()
 	{
 		_index++;
 		_index = _index % NUMBER_CAMERA_LOCATIONS;
-		getCameraLocation(angle, x, y, z);
+		return getCameraLocation();
 	}
 
 	/**
@@ -32,38 +46,64 @@ public:
 	* @param angle [OUT] - angle of rotation in radians
 	* @param x, y, z [OUT] - coordinates of a vector about which rotation happens
 	*/
-	inline void getPrevCameraLocation(float* angle, float* x, float* y, float* z)
+	inline std::vector< Rotation > getPrevCameraLocation()
 	{
 		_index--;
 		if (_index < 0)
 		{
 			_index = NUMBER_CAMERA_LOCATIONS - 1;
 		}
-		getCameraLocation(angle, x, y, z);
+		return getCameraLocation();
 	}
 
 private:
 	int _index;
 
-	inline void getCameraLocation(float* angle, float* x, float* y, float* z)
+	inline std::vector< Rotation > getCameraLocation()
 	{
+		std::vector< Rotation > rotations;
+		Rotation r_0, r_1, r_2;
 		switch(_index)
 		{
-			case CAMERA_LOCATION_ZERO:
-				*angle = 1.0f;
-				*x = 1.0f; *y = 0.0f; *z = 0.0f;
+			case CAMERA_LOCATION_ZERO: 
+			printf("location 0\n");
+				r_0.angle = -1.47f;
+				r_0.x = 1.0f;
+				r_0.y = 0.0f;
+				r_0.z = 0.0f;
+				rotations.push_back(r_0);
+				r_1.angle = -3.14f;
+				r_1.x = 0.0f;
+				r_1.y = 0.0f;
+				r_1.z = 1.0f;
+				rotations.push_back(r_1);
 			break;
 			case CAMERA_LOCATION_ONE:
-				*angle = 0.78f;
-				*x = 1.0f; *y = 0.0f; *z = 0.0f;
+			printf("location 1\n");
+				r_0.angle = -1.47f;
+				r_0.x = 1.0f;
+				r_0.y = 0.0f;
+				r_0.z = 0.0f;
+				rotations.push_back(r_0);
+				r_1.angle = -1.47f;
+				r_1.x = 0.0f;
+				r_1.y = 0.0f;
+				r_1.z = 1.0f;
+				rotations.push_back(r_1);
 			break;
-			case CAMERA_LOCATION_TWO:
-				*angle = 0.38f;
-				*x = 1.0f; *y = 0.0f; *z = 0.0f;
+			case CAMERA_LOCATION_TWO: // TOP VIEW
+			printf("location 2\n");
+				r_0.angle = 0.0f;
+				r_0.x = 0.0f;
+				r_0.y = 0.0f;
+				r_0.z = 0.0f;
+				rotations.push_back(r_0);
 			break;
 			default:
 				printf("unknown camera location\n");
 				break;
 		}
+
+		return rotations;
 	}
 };

@@ -77,9 +77,10 @@ void Contours::draw()
 	for(std::vector< Contour* >::iterator iter = _contoursData.begin(); 
 		iter != _contoursData.end(); ++iter)
 	{
-		glColorPointer(3, GL_FLOAT, 0, (*iter)->colors);
-		glVertexPointer(3, GL_FLOAT, 0, (*iter)->vertices);
-		glDrawArrays(GL_LINES, 0, (*iter)->numberVertices);
+		Contour* contour = (*iter);
+		glColorPointer(3, GL_FLOAT, 0, contour->colors);
+		glVertexPointer(3, GL_FLOAT, 0, contour->vertices);
+		glDrawArrays(GL_LINES, 0, contour->numberVertices);
 	}
 	glDisableClientState( GL_COLOR_ARRAY );
 	glDisableClientState( GL_VERTEX_ARRAY );
@@ -88,6 +89,21 @@ void Contours::draw()
 void Contours::changeColor()
 {
 	_palette->nextColorScale();
+
+	// Update colors of all contours.
+	float RED, GREEN, BLUE;
+	for(std::vector< Contour* >::iterator iter = _contoursData.begin(); iter != _contoursData.end(); ++iter)
+	{
+		Color* color = _palette->getColor((*iter)->height);
+		RED = color->red; GREEN = color->green; BLUE = color->blue;
+		float* colors = (*iter)->colors;
+		for(unsigned int i = 0; i < (*iter)->numberVertices * 3; i += 3)
+		{
+			colors[i] = RED;
+			colors[i + 1] = GREEN;
+			colors[i + 2] = BLUE;
+		}
+	}
 }
 
 /* --------------- *
@@ -122,7 +138,7 @@ void Contours::addContours()
 		*/
 		float* colors = new float[totalNumberVertices_X3];
 		float RED, GREEN, BLUE;
-		Color* color = _palette->getColor(height / (_maxHeight * 1.0));
+		Color* color = _palette->getColor(height);
 		RED = color->red; GREEN = color->green; BLUE = color->blue;
 		for(i = 0; i < totalNumberVertices_X3; i += 3)
 		{
@@ -168,13 +184,13 @@ void Contours::removeContours()
 	/*
 	* Free previously allocated memory, then erase elements in vector
 	*/
-	int half = _contoursData.size() >> 1;
+	unsigned int half = _contoursData.size() >> 1;
 	for(std::vector< Contour* >::iterator iter = _contoursData.begin() + half; 
 		iter != _contoursData.end(); ++iter)
 	{
 		delete (*iter);
 	}
-	_contoursData.erase(_contoursData.begin()+half, _contoursData.end());
+	_contoursData.erase(_contoursData.begin() + half, _contoursData.end());
 }
 
 unsigned int Contours::cell(unsigned int height, double a, double b, double c , double d)

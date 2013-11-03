@@ -20,9 +20,12 @@ public:
 	float blue;
 };
 
-#define NUMBER_COLOR_SCALES 2
+#define NUMBER_COLOR_SCALES 4
 #define STANDARD_COLOR_SCALE 0
 #define RED_BLUE_COLOR_SCALE 1
+#define GREY_COLOR_SCALE 2
+// Works for Honolulu map only
+#define CARTO_COLOR_SCALE 3 
 
 const float scalingFactor = 1.57f;
 
@@ -58,9 +61,9 @@ public:
 	* @param height of the contour
 	* @return color
 	*/
-	inline Color* getColor(float height)
+	inline Color* getColor(int height)
 	{
-		float h = height * scalingFactor;
+		float scaledHeight = height * scalingFactor / _maxHeight;
 
 		Color* color;
 		float red = 0.0f; 
@@ -70,15 +73,48 @@ public:
 		switch(_index)
 		{
 			case STANDARD_COLOR_SCALE:
-				red = sin(h);
-				green = cos(h);
+				red = sin(scaledHeight);
+				green = cos(scaledHeight);
 				color = new Color(red, green, blue);
 			break;
 			case RED_BLUE_COLOR_SCALE:
-				red = sin(h);
-				blue = cos(h);
+				red = sin(scaledHeight);
+				blue = cos(scaledHeight);
 				color = new Color(red, green, blue);
 			break;
+			case GREY_COLOR_SCALE:
+				blue = green = red = 0.5 * scaledHeight;
+				color = new Color(red, green, blue);
+			break;
+			case CARTO_COLOR_SCALE:
+				if (height < 150)
+				{
+					green = 0.2 + height / 150.0f;
+				}
+				else if (height < 500)
+				{
+					red = sin(height / 500.0f);
+					green = height / 500.0f;
+				}
+				else if (height < 750)
+				{
+					red = 1.0f;
+					green = height / 770.0f;
+					blue = 0.10f;
+				}
+				else if (height < 900)
+				{	
+					red = sin(scaledHeight);
+					green = cos(scaledHeight);
+					blue = 0.20f;
+				}
+				else
+				{
+					red = sin(scaledHeight);
+					blue = green = 0.70f;
+				}
+				color = new Color(red, green, blue);
+				break;
 			default:
 				printf("palette index unknown\n");
 			break;

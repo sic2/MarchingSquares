@@ -61,12 +61,11 @@ int maxHeight;
 // Application objects
 Contours* contours;
 Camera* camera;
+std::vector< Rotation > rotations;
 
 // Model position values
 float zRadians = 0.0;
 float xRadians = 0.0;
-float radians;
-float xVect, yVect, zVect;
 float zZoom = 1.0;
 
 // View settings
@@ -121,7 +120,11 @@ void display()
 	}
 	else
 	{
-		glRotatef(RADIANS_TO_DEGREES * radians, xVect, yVect, zVect);
+		for (std::vector< Rotation >::iterator iter = rotations.begin(); 
+		iter != rotations.end(); ++iter)
+		{
+			glRotatef(RADIANS_TO_DEGREES * iter->angle, iter->x, iter->y, iter->z);
+		}
 	}
 
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -191,9 +194,9 @@ void keyboardFunc(unsigned char key, int x, int y)
 			break;
 		case THREE_SIGN: useOrthoProj = false; setup(width, height);
 			break;
-		case OPEN_ANGULAR_SIGN: camera->getPrevCameraLocation(&radians, &xVect, &yVect, &zVect); usePredefinedCamera = true;
+		case OPEN_ANGULAR_SIGN: rotations =  camera->getPrevCameraLocation(); usePredefinedCamera = true;
 			break;
-		case CLOSE_ANGULAR_SIGN: camera->getNextCameraLocation(&radians, &xVect, &yVect, &zVect); usePredefinedCamera = true;
+		case CLOSE_ANGULAR_SIGN: rotations = camera->getNextCameraLocation(); usePredefinedCamera = true;
 			break;
 		case ESC_SIGN: shutDown();
 			break;
@@ -297,7 +300,7 @@ Helper::instance().START_PROFILING(PROFILE_FILE);
 	}
 
 	// Get data before starting any graphics
-	std::string fileName = DATA_FILE("honolulu_raw.txt"); //argv[1];
+	std::string fileName = DATA_FILE("nmtopo_raw.txt"); //argv[1];
 	data = DataAcquisition::getData(fileName, &rows, &columns, &minHeight, &maxHeight);
 	contours = new Contours(data, columns, rows, minHeight, maxHeight);
 	camera = new Camera();
