@@ -202,7 +202,7 @@ unsigned int Contours::numberVertices(unsigned int num)
 	{
 	case 5: case 10: 
 		retval += 2;
-	case 1: case 2: case 4: case 7: case 8: case 11: case 13: case 14: case 3: case 6: case 9: case 12: 
+	case 1: case 2: case 3: case 4: case 6: case 7: case 8: case 9: case 11: case 12: case 13: case 14:    
 		retval += 2;
 		break;
 	case 0: case 15: break;

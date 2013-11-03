@@ -32,7 +32,7 @@ Generate textual listing
 
 	$ pprof --text ./squareShift Profiling/squareShift.prof
 
-Generate annotated callgraph 
+Generate annotated callgraph using gv
 
 	$ pprof --gv ./squareShift Profiling/squareShift.prof
 
@@ -44,8 +44,8 @@ Generate gif callgraph
 # TODO
 
 	[] Camera dynamic path
-	[] Create an extended set of predefined locations of the camera
-	[] Create more color schemes
+	[/] Create an extended set of predefined locations of the camera
+	[/] Create color schemes
 	[] If number of contours cannot be halved, than set to max
 	[] Create menus
 	[] Info panel
@@ -53,7 +53,7 @@ Generate gif callgraph
 
 # Known bugs
 
-	[] Perspective projection works on Linux Lab Machines only
+	[?] Perspective projection works on Linux Lab Machines only
 
 # Requirements
 
