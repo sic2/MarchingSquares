@@ -4,6 +4,7 @@
 #include <fstream>
 #include <sstream>
 #include <cstdlib>
+#include <climits>
 
 class DataAcquisition
 {
@@ -14,10 +15,14 @@ public:
 	* @param columns [OUT]
 	* @return data to be displayed as int[columns][rows]
 	*/
-	inline static int** getData(std::string fileName, unsigned int* rows, unsigned int* columns)
+	inline static int** getData(std::string fileName, unsigned int* rows, unsigned int* columns, int* minHeight, int* maxHeight)
 	{
 		int** retval;
+		// Initialise heights to extreme end-points
+		*minHeight = INT_MAX;
+		*maxHeight = INT_MIN;
 
+		int height;
 		// File input routine as in: http://www.cplusplus.com/doc/tutorial/files/
 		std::ifstream file (fileName.c_str());
 		std::string line;
@@ -41,7 +46,19 @@ public:
 			    unsigned int column = 0;
 			    while(lineStream >> token)
 			    {
-			        retval[column][row] = atoi(token.c_str());
+			    	height = atoi(token.c_str());
+
+			    	// Updating min/max heights
+			    	if (height < *minHeight)
+			    	{
+			    		*minHeight = height;
+			    	}
+			    	if (height > *maxHeight)
+			    	{
+			    		*maxHeight = height;
+			    	}
+
+			        retval[column][row] = height;
 			        column++;
 			        if ((column % *columns) == 0)
 			        {

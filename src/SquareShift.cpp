@@ -288,8 +288,8 @@ Helper::instance().START_PROFILING(PROFILE_FILE);
 
 	// Get data before starting any graphics
 	std::string fileName = DATA_FILE("honolulu_raw.txt"); //argv[1];
-	data = DataAcquisition::getData(fileName, &rows, &columns);
-	contours = new Contours(data, columns, rows, 960, 0);
+	data = DataAcquisition::getData(fileName, &rows, &columns, &minHeight, &maxHeight);
+	contours = new Contours(data, columns, rows, minHeight, maxHeight);
 	camera = new Camera();
 
 	glutInit(&argc, argv);

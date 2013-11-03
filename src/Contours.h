@@ -42,7 +42,7 @@ struct CompareFirst
 class Contours
 {
 public:
-	Contours(int** data, unsigned int columns, unsigned int rows, int maxHeight, int minHeight);
+	Contours(int** data, unsigned int columns, unsigned int rows, int minHeight, int maxHeight);
 	virtual ~Contours();
 
 	/**

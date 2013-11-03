@@ -47,9 +47,10 @@ Generate gif callgraph
 	[] Create an extended set of predefined locations of the camera
 	[] Create more color schemes
 	[] Calculate contour's color once rather than every time
-	[] Get min and max height when reading the data file
+	[] If number of contours cannot be halved, than set to max
 	[] Create menus
 	[] Info panel
+	[] Be able to pick a contour, color it and display info about it
 
 # Known bugs
 

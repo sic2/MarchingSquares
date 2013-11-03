@@ -4,7 +4,7 @@
 
 #define INITIAL_NUMBER_CONTOURS 8
 
-Contours::Contours(int** data, unsigned int columns, unsigned int rows, int maxHeight, int minHeight)
+Contours::Contours(int** data, unsigned int columns, unsigned int rows, int minHeight, int maxHeight)
 {
 	this->_data = data;
 	this->_columns = columns;
@@ -78,7 +78,7 @@ void Contours::draw()
 	{
 		glVertexPointer(3, GL_FLOAT, 0, iter->second.second);
 
-		Color* color = _palette->getColor(iter->first / 960.0); // FIXME
+		Color* color = _palette->getColor(iter->first / (_maxHeight * 1.0)); // FIXME - pre-calculate
 		glColor3f(color->red, color->green, color->blue);
 		glDrawArrays(GL_LINES, 0, iter->second.first);
 	}
@@ -117,7 +117,7 @@ void Contours::addContours()
 		}
 		
 		unsigned int CASE;
-		float scaledHeight = HEIGHT_SCALE * (height / 960.0); // FIXME 
+		float scaledHeight = HEIGHT_SCALE * (height / (_maxHeight * 1.0)); // FIXME - pre-calculate
 		float* vertices = new float[3 * totalNumberVertices];
 		unsigned int totalNumberCoordinates = 0; // Reset the total number of lines calculated.
 		for(i = 0; i < _columns; ++i) for (j = 0; j < _rows; ++j)  // Calculate the lines for this contour.
