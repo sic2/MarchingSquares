@@ -95,7 +95,7 @@ unsigned int pickBuffer[PICK_BUFFER_SIZE];
 enum MENU_TYPE
 {
 	MENU_COLOR,
-	MENU_PRESPECTIVE,
+	MENU_PERSPECTIVE,
 	MENU_DOUBLE_CONTOURS,
 	MENU_HALVE_CONTOURS,
 	MENU_DYNAMIC_PATH,
@@ -117,7 +117,7 @@ void menu(int);
 
 // Projections
 void orthoProj(int w, int h);
-void prespectiveProj(int w, int h);
+void perspectiveProj(int w, int h);
 
 // Application defined
 void setup(int w, int h);
@@ -178,7 +178,7 @@ void display()
 	Helper::instance().displayText(TEXT_POSITION_X, TEXT_POSITION_Y, "#Contours: %i", contours->getNumberContours());
 	Helper::instance().displayText(TEXT_POSITION_X - 0.9, TEXT_POSITION_Y, "#Height Last Picked: %i", heightLastPicked);
 	
-	std::string MODE = useOrthoProj ? std::string("ORTHO") : std::string("PRESPECTIVE");
+	std::string MODE = useOrthoProj ? std::string("ORTHO") : std::string("PERSPECTIVE");
 	Helper::instance().displayText(TEXT_POSITION_X - 0.9, -1.0f * TEXT_POSITION_Y, MODE.c_str());
 
 	if (usePredefinedCamera) Helper::instance().displayText(TEXT_POSITION_X, -1.0f * TEXT_POSITION_Y, rotations.first.c_str());
@@ -204,11 +204,11 @@ void orthoProj(int w, int h)
 }
 
 /**
-* Set the prespective projection
+* Set the perspective projection
 *
 * Note: this works only on Linux - Lab machines
 */
-void prespectiveProj(int w, int h)
+void perspectiveProj(int w, int h)
 {
 	gluPerspective(PERSPECTIVE_ANGLE_OF_VIEW, w / h, PERSPECTIVE_NEAR, PERSPECTIVE_FAR); 
 }
@@ -364,7 +364,7 @@ void menu(int item)
 		{
 		case MENU_COLOR: contours->changeColor();
 			break;
-		case MENU_PRESPECTIVE: useOrthoProj = !useOrthoProj; setup(width, height);
+		case MENU_PERSPECTIVE: useOrthoProj = !useOrthoProj; setup(width, height);
 			break;
 		case MENU_DOUBLE_CONTOURS: contours->changeNumberContours(true);
 			break;
@@ -396,7 +396,7 @@ void setup(int w, int h)
 	}
 	else
 	{
-		prespectiveProj(w, h);
+		perspectiveProj(w, h);
 	}
 	glMatrixMode(GL_MODELVIEW);
 }
@@ -467,7 +467,7 @@ Helper::instance().START_PROFILING(PROFILE_FILE);
 	glutAddMenuEntry("Change Color", MENU_COLOR);
 	glutAddSubMenu("Change View", subMenu);
 		glutAttachMenu(GLUT_RIGHT_BUTTON);
-	glutAddMenuEntry("Change Perspective", MENU_PRESPECTIVE);
+	glutAddMenuEntry("Change Perspective", MENU_PERSPECTIVE);
 	glutAddMenuEntry("Double Contours", MENU_DOUBLE_CONTOURS);
  	glutAddMenuEntry("Halve Contours", MENU_HALVE_CONTOURS);
  	glutAddMenuEntry("Dynamic Path", MENU_DYNAMIC_PATH);
