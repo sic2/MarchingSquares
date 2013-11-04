@@ -177,12 +177,15 @@ void display()
 	}
 	glPopMatrix();
 	
-	// Textual information
+	// Textual information - not affected by roations since outside of push/pop matrices
 	Helper::instance().displayText(TEXT_POSITION_X, TEXT_POSITION_Y, "#Contours: %i", contours->getNumberContours());
 	Helper::instance().displayText(TEXT_POSITION_X - 0.9, TEXT_POSITION_Y, "#Height Last Picked: %i", heightLastPicked);
 	
 	std::string MODE = useOrthoProj ? std::string("ORTHO") : std::string("PRESPECTIVE");
 	Helper::instance().displayText(TEXT_POSITION_X - 0.9, -1.0f * TEXT_POSITION_Y, MODE.c_str());
+
+	if (usePredefinedCamera) Helper::instance().displayText(TEXT_POSITION_X, -1.0f * TEXT_POSITION_Y, rotations.first.c_str());
+
 	glFlush();
 }
 

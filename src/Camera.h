@@ -3,10 +3,11 @@
 #include <vector>
 #include <cmath>
 
-#define NUMBER_CAMERA_LOCATIONS 3
+#define NUMBER_CAMERA_LOCATIONS 4
 #define CAMERA_LOCATION_ZERO 0 
 #define CAMERA_LOCATION_ONE 1
 #define CAMERA_LOCATION_TWO 2
+#define CAMERA_LOCATION_THREE 3
 
 typedef struct Rotation
 {
@@ -55,7 +56,7 @@ public:
 	inline std::vector< Rotation > getDynamicPath()
 	{
 		std::vector< Rotation > retval;
-		for(int i = 0; i < 10000; i++)
+		for(int i = 0; i < 5000; i++)
 		{
 			Rotation r;
 			r.angle = -0.001f;
@@ -82,33 +83,47 @@ public:
 		retval.push_back("Top");
 		retval.push_back("Front Left");
 		retval.push_back("Front Right");
+		retval.push_back("Front");
 		return retval;
 	}
 
+	/**
+	* Add an item and its related label to the camera environment
+	*/
 	inline void addMenuItem(int item, std::string label)
 	{
 		_menuIndices.insert(std::pair<int, std::string>(item, label));
 	}
 
+	/**
+	* Get a view set of rotations given a menu item
+	*/
 	inline std::pair< std::string, std::vector< Rotation > > getViewByIndex(int item)
 	{
+		std::pair< std::string, std::vector< Rotation > > retval = getCameraLocation(); // Initialise
+
 		std::string label = _menuIndices.find(item)->second;
 		if(label.compare("Top") == 0)
 		{
 			_index = CAMERA_LOCATION_TWO;
-			return getCameraLocation();
+			retval = getCameraLocation();
 		}
 		if(label.compare("Front Left") == 0)
 		{
 			_index = CAMERA_LOCATION_ONE;
-			return getCameraLocation();
+			retval = getCameraLocation();
 		}
 		if(label.compare("Front Right") == 0)
 		{
 			_index = CAMERA_LOCATION_ZERO;
-			return getCameraLocation();
+			retval = getCameraLocation();
 		}
-			 
+		if(label.compare("Front") == 0)
+		{
+			_index = CAMERA_LOCATION_THREE;
+			retval = getCameraLocation();
+		}
+		return retval;
 	} 
 
 private:
@@ -138,6 +153,13 @@ private:
 				rotations.first = std::string("Top");
 				r_0.angle = 0.0f; r_0.x = 0.0f; r_0.y = 0.0f; r_0.z = 0.0f;
 				rotations.second.push_back(r_0);
+			break;
+			case CAMERA_LOCATION_THREE: 
+				rotations.first = std::string("Front");
+				r_0.angle = -1.0f; r_0.x = 1.0f; r_0.y = 0.0f; r_0.z = 0.0f;
+				rotations.second.push_back(r_0);
+				r_1.angle = -2.50f; r_1.x = 0.0f; r_1.y = 0.0f; r_1.z = 1.0f;
+				rotations.second.push_back(r_1);
 			break;
 			default:
 				printf("unknown camera location\n");

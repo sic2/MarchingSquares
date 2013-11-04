@@ -42,11 +42,7 @@ Generate annotated callgraph using gv
 Generate gif callgraph
 	
 	$ pprof --gif ./squareShift Profiling/squareShift.prof > OUTPUT.gif
-
-
-# TODO
-
-	[/] Create an extended set of predefined locations of the camera
+	
 
 # Known bugs
 
