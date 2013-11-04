@@ -43,6 +43,12 @@ Generate gif callgraph
 	
 	$ pprof --gif ./squareShift Profiling/squareShift.prof > OUTPUT.gif
 
+# Demo
+
+	http://youtu.be/FYMh4WhZvuE 
+
+Note:
+	Performance of the video demo is affected by the recording tool QuickTime player.
 
 # Known bugs
 
