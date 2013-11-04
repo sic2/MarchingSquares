@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <cmath>
 
 #define NUMBER_CAMERA_LOCATIONS 3
 #define CAMERA_LOCATION_ZERO 0 
@@ -56,10 +57,27 @@ public:
 		return getCameraLocation();
 	}
 
-	// inline std::vector< Rotation > getDynamicPath()
-	// {
-	// 	// TODO
-	// }
+	inline std::vector< Rotation > getDynamicPath()
+	{
+		// TODO
+		std::vector< Rotation > retval;
+		for(int i = 0; i < 10000; i++)
+		{
+			Rotation r;
+			r.angle = -0.001f;
+			if (i < 1000)
+				r.x  = 0.5f;
+			else
+				r.x = 0.0f;
+			r.y = 0.0f;
+			if (i < 1000)
+				r.z = cos(i/100000);
+			else
+				r.z = cos(i/10000);
+			retval.push_back(r);
+		}
+		return retval;
+	}
 
 private:
 	int _index;
@@ -72,28 +90,16 @@ private:
 		{
 			case CAMERA_LOCATION_ZERO: 
 			printf("location 0\n");
-				r_0.angle = -1.47f;
-				r_0.x = 1.0f;
-				r_0.y = 0.0f;
-				r_0.z = 0.0f;
+				r_0.angle = -1.47f; r_0.x = 1.0f; r_0.y = 0.0f; r_0.z = 0.0f;
 				rotations.push_back(r_0);
-				r_1.angle = -3.14f;
-				r_1.x = 0.0f;
-				r_1.y = 0.0f;
-				r_1.z = 1.0f;
+				r_1.angle = -3.14f; r_1.x = 0.0f; r_1.y = 0.0f; r_1.z = 1.0f;
 				rotations.push_back(r_1);
 			break;
 			case CAMERA_LOCATION_ONE:
 			printf("location 1\n");
-				r_0.angle = -1.47f;
-				r_0.x = 1.0f;
-				r_0.y = 0.0f;
-				r_0.z = 0.0f;
+				r_0.angle = -1.47f; r_0.x = 1.0f; r_0.y = 0.0f; r_0.z = 0.0f;
 				rotations.push_back(r_0);
-				r_1.angle = -1.47f;
-				r_1.x = 0.0f;
-				r_1.y = 0.0f;
-				r_1.z = 1.0f;
+				r_1.angle = -1.47f; r_1.x = 0.0f; r_1.y = 0.0f; r_1.z = 1.0f;
 				rotations.push_back(r_1);
 			break;
 			case CAMERA_LOCATION_TWO: // TOP VIEW

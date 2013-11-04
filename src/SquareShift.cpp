@@ -73,6 +73,7 @@ int maxHeight;
 Contours* contours;
 Camera* camera;
 std::vector< Rotation > rotations;
+std::vector< Rotation > dynamicPath;
 
 // Model position values
 float zRadians = 0.0;
@@ -82,6 +83,7 @@ float zZoom = 1.0;
 // View settings
 bool useOrthoProj = true;
 bool usePredefinedCamera = false;
+bool useDynamicPathView = false;
 
 // Window dimensions
 int width, height;
@@ -120,30 +122,45 @@ void picking(int x, int y);
 void display()
 {
 	glPushMatrix();
-	if (!useOrthoProj)
+
+	if (!useDynamicPathView) // TODO - cleanup logic
 	{
-		gluLookAt(0.0, 0.0, zZoom,
-			0.0, 0.0, 0.0, 
-			0.0, 1.0, 0.0);
-	}
-	glScalef(SCALING_FACTOR, SCALING_FACTOR, SCALING_FACTOR);
-	if (!usePredefinedCamera)
-	{
-		glRotatef(RADIANS_TO_DEGREES * xRadians, 1.0, 0.0, 0.0);
-		glRotatef(RADIANS_TO_DEGREES * zRadians, 0.0, 0.0, 1.0);
+		if (!useOrthoProj)
+		{
+			gluLookAt(0.0, 0.0, zZoom,
+				0.0, 0.0, 0.0, 
+				0.0, 1.0, 0.0);
+		}
+		glScalef(SCALING_FACTOR, SCALING_FACTOR, SCALING_FACTOR);
+		if (!usePredefinedCamera)
+		{
+			glRotatef(RADIANS_TO_DEGREES * xRadians, 1.0, 0.0, 0.0);
+			glRotatef(RADIANS_TO_DEGREES * zRadians, 0.0, 0.0, 1.0);
+		}
+		else
+		{
+			for (std::vector< Rotation >::iterator iter = rotations.begin(); 
+			iter != rotations.end(); ++iter)
+			{
+				glRotatef(RADIANS_TO_DEGREES * iter->angle, iter->x, iter->y, iter->z);
+			}
+		}
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		contours->draw();
 	}
 	else
 	{
-		for (std::vector< Rotation >::iterator iter = rotations.begin(); 
-		iter != rotations.end(); ++iter)
+		for(std::vector< Rotation >::iterator iter = dynamicPath.begin(); 
+		iter != dynamicPath.end(); ++iter)
 		{
 			glRotatef(RADIANS_TO_DEGREES * iter->angle, iter->x, iter->y, iter->z);
+			glClear(GL_COLOR_BUFFER_BIT);
+			contours->draw();
+			glFlush();
 		}
+		useDynamicPathView = false;
 	}
-
-	glClear(GL_COLOR_BUFFER_BIT);
-
-	contours->draw();
 	glPopMatrix();
 	
 	// Textual information
@@ -199,11 +216,8 @@ void keyboardFunc(unsigned char key, int x, int y)
 			break;
 		case C_SIGN: case c_SIGN: contours->changeColor();
 			break;
-		case SPACE_SIGN:
-		{
-			printf("dynamic path \n");
+		case SPACE_SIGN: dynamicPath = camera->getDynamicPath(); useDynamicPathView = true;
 			break;
-		}
 		case TWO_SIGN: useOrthoProj = true; setup(width, height);
 			break;
 		case THREE_SIGN: useOrthoProj = false; setup(width, height);
