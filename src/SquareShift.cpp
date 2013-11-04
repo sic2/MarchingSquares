@@ -130,9 +130,6 @@ void picking(int x, int y);
  *  Functions  *
  *  ---------- */ 
 
-/**
-*
-*/
 void display()
 {
 	glPushMatrix();
@@ -225,9 +222,6 @@ void myReshape(int w, int h)
 	setup(w, h);
 }
 
-/**
-*
-*/
 void keyboardFunc(unsigned char key, int x, int y)
 {
 	switch(key)
@@ -427,9 +421,6 @@ void shutDown()
 	exit(EXIT_SUCCESS);
 }
 
-/**
-*
-*/
 int main(int argc, char **argv)
 {	
 Helper::instance().START_PROFILING(PROFILE_FILE);
@@ -437,11 +428,11 @@ Helper::instance().START_PROFILING(PROFILE_FILE);
 	if (argc < 2) // No arguments given, then return with error
 	{
 		printf("[ ERROR ] :: Please provide a data set file\n");
-		//return 1;  // TODO - uncomment
+		return 1; 
 	}
 
 	// Get data before starting any graphics
-	std::string fileName = DATA_FILE("honolulu_raw.txt"); //argv[1];
+	std::string fileName = argv[1]; //DATA_FILE("honolulu_raw.txt");
 	data = DataAcquisition::getData(fileName, &rows, &columns, &minHeight, &maxHeight);
 	contours = new Contours(data, columns, rows, minHeight, maxHeight);
 	camera = new Camera();

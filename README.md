@@ -16,7 +16,7 @@ To turn on optimisation (-O2)
 
 Run:
 
-	$ ./squareShift
+	$ ./squareShift Data/honolulu_raw.txt (or other data sets)
 
 Clean all compiled files + any profiling data file:
 
@@ -24,12 +24,12 @@ Clean all compiled files + any profiling data file:
 
 Clean, Compile and Run:
 
-	$ make clean && make release && ./squareShift
+	$ make clean && make release && ./squareShift Data/honolulu_raw.txt (or other data sets)
 
 # Profiling
 
 	$ make profile
-	$ ./squareShift
+	$ ./squareShift Data/honolulu_raw.txt (or other data sets)
 
 Generate textual listing
 
@@ -42,7 +42,7 @@ Generate annotated callgraph using gv
 Generate gif callgraph
 	
 	$ pprof --gif ./squareShift Profiling/squareShift.prof > OUTPUT.gif
-	
+
 
 # Known bugs
 
@@ -54,6 +54,7 @@ Generate gif callgraph
 
 ## Tested targets
 	i686-apple-darwin10-gcc-4.2.1 on Mac OS X 10.6.8
+	i686-apple-darwin11-llvm-gcc-4.2 on Mac OS X 10.8.5
 	gcc-4.4.7 (Red Hat 4.4.7-3) on Scientific Linux - Kernel Linux 2.6.32
 
 ## Profiling
