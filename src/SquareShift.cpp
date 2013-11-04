@@ -57,7 +57,9 @@ const float RADIANS_TO_DEGREES = 57.2957795f;
 const float TEXT_POSITION_X = 0.3f;
 const float TEXT_POSITION_Y = 0.92f;
 const float ZOOM_FACTOR = 0.01;
-const float PERSPECTIVE_ANGLE_OF_VIEW = 60;
+const float PERSPECTIVE_ANGLE_OF_VIEW = 90.0f;
+const float PERSPECTIVE_NEAR = 0.0f;
+const float PERSPECTIVE_FAR = 1.0f;
 
 /*
 * Global variables
@@ -192,14 +194,15 @@ void orthoProj(int w, int h)
 */
 void prespectiveProj(int w, int h)
 {
-	gluPerspective(PERSPECTIVE_ANGLE_OF_VIEW, w / h, 0, 1); // XXX - use constants
+	gluPerspective(PERSPECTIVE_ANGLE_OF_VIEW, w / h, PERSPECTIVE_NEAR, PERSPECTIVE_FAR); 
 }
 
 /**
 * Ensures that reshaping the windows keep the model in the correct ratio
 */
 void myReshape(int w, int h)
-{
+{	
+	width = w; height = h;
 	setup(w, h);
 }
 
