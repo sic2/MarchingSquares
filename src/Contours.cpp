@@ -1,7 +1,6 @@
 #include "Contours.h"
 
 #include <algorithm>
-#include <climits>
 
 #define INITIAL_NUMBER_CONTOURS 8
 
@@ -18,8 +17,6 @@ Contours::Contours(int** data, unsigned int columns, unsigned int rows, int minH
 	_yCells = rows + WINDOW_OFFSET;
 
 	_palette = new Palette(_minHeight, _maxHeight);
-	
-	_nextID = 0;
 
 	addContours();
 }
@@ -86,7 +83,7 @@ void Contours::draw()
 		glColorPointer(3, GL_FLOAT, 0, contour->colors);
 		glVertexPointer(3, GL_FLOAT, 0, contour->vertices);
 
-		glPushName(contour->ID);
+		glPushName(contour->height);
 		glDrawArrays(GL_LINES, 0, contour->numberVertices);
 		glPopName();
 	}
@@ -118,20 +115,10 @@ void Contours::changeColor()
 * XXX - if another contour was previously picked, than please 
 * restore its color back
 */
-unsigned int Contours::updatePickedContour(unsigned int IDs[], int numberHits)
+void Contours::updatePickedContour(unsigned int hitIndex)
 {
-	Contour* contour;
-	int maxHeight = INT_MIN;
-	for (int i = 0; i < numberHits; i++)
-	{
-		if (_idToContours.find(IDs[0])->second->height > maxHeight)
-		{
-			contour = _idToContours.find(IDs[0])->second;
-			maxHeight = _idToContours.find(IDs[0])->second->height;
-		}
-	}
-	contour->colors = getColorArray(contour->numberVertices * 3, contour->height, true); // FIXME
-	return contour->height;
+	Contour* contour = (*std::find_if(_contoursData.begin(),_contoursData.end(), CompareFirst(hitIndex)));
+	contour->colors = getColorArray(contour->numberVertices * 3, hitIndex, true);
 }
 
 /* --------------- *
@@ -194,11 +181,8 @@ void Contours::addContours()
 			totalNumberCoordinates += numberVertices(CASE) * 3;
 		}
 	
-		unsigned int ID = this->_nextID++;
-		Contour* contour = new Contour(height, totalNumberVertices, vertices, colors, ID);
+		Contour* contour = new Contour(height, totalNumberVertices, vertices, colors);
 		_contoursData.push_back(contour);
-		_idToContours.insert(std::pair< unsigned int, Contour* >(ID, contour));
-		
 	}
 }
 
@@ -209,13 +193,7 @@ void Contours::removeContours()
 	*/
 	unsigned int half = _contoursData.size() >> 1;
 	if (half % 2 != 0) ++half; // Correct division of odd numbers
-  	for(std::vector< Contour* >::iterator iter = _contoursData.begin() + half; 
-		iter != _contoursData.end(); ++iter)
-	{	
-		unsigned int ID = (*iter)->ID;
-		_idToContours.erase(ID);
-		delete (*iter);
-	}
+  	for(std::vector< Contour* >::iterator iter = _contoursData.begin() + half; iter != _contoursData.end(); ++iter) delete (*iter);
 	_contoursData.erase(_contoursData.begin() + half, _contoursData.end());
 }
 

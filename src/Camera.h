@@ -11,9 +11,7 @@
 typedef struct Rotation
 {
 	float angle;
-	float x;
-	float y; 
-	float z;
+	float x; float y; float z;
 } Rotation;
 
 /*
@@ -32,8 +30,7 @@ public:
 
 	/**
 	* Calculate the next predefined camera location
-	* @param angle [OUT] - angle of rotation in radians
-	* @param x, y, z [OUT] - coordinates of a vector about which rotation happens
+	* @return rotations to set the camera to next location
 	*/
 	inline std::vector< Rotation > getNextCameraLocation()
 	{
@@ -44,8 +41,7 @@ public:
 
 	/**
 	* Calculate the previous predefined camera location
-	* @param angle [OUT] - angle of rotation in radians
-	* @param x, y, z [OUT] - coordinates of a vector about which rotation happens
+	* @return rotations to set the camera to prev. location
 	*/
 	inline std::vector< Rotation > getPrevCameraLocation()
 	{
@@ -57,9 +53,11 @@ public:
 		return getCameraLocation();
 	}
 
+	/**
+	* @return rotations to dynamically move the camera
+	*/
 	inline std::vector< Rotation > getDynamicPath()
 	{
-		// TODO
 		std::vector< Rotation > retval;
 		for(int i = 0; i < 10000; i++)
 		{
@@ -79,6 +77,18 @@ public:
 		return retval;
 	}
 
+	/**
+	* TODO
+	*/
+	inline std::vector< std::string > getViewsNames()
+	{
+		std::vector< std::string > retval;
+		retval.push_back("Top");
+		retval.push_back("Front Left");
+		retval.push_back("Front Right");
+		return retval;
+	}
+
 private:
 	int _index;
 
@@ -89,14 +99,14 @@ private:
 		switch(_index)
 		{
 			case CAMERA_LOCATION_ZERO: 
-			printf("location 0\n");
+			printf("location 0\n"); // Front Left
 				r_0.angle = -1.47f; r_0.x = 1.0f; r_0.y = 0.0f; r_0.z = 0.0f;
 				rotations.push_back(r_0);
 				r_1.angle = -3.14f; r_1.x = 0.0f; r_1.y = 0.0f; r_1.z = 1.0f;
 				rotations.push_back(r_1);
 			break;
 			case CAMERA_LOCATION_ONE:
-			printf("location 1\n");
+			printf("location 1\n");  // Front rigth
 				r_0.angle = -1.47f; r_0.x = 1.0f; r_0.y = 0.0f; r_0.z = 0.0f;
 				rotations.push_back(r_0);
 				r_1.angle = -1.47f; r_1.x = 0.0f; r_1.y = 0.0f; r_1.z = 1.0f;

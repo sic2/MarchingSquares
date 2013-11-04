@@ -33,13 +33,12 @@
 class Contour
 {
 public:
-	inline Contour(int height, unsigned int numberVertices, float* vertices, float* colors, unsigned int ID)
+	inline Contour(int height, unsigned int numberVertices, float* vertices, float* colors)
 	{
 		this->height = height; 
 		this->numberVertices = numberVertices;
 		this->vertices = vertices;
 		this->colors = colors;
-		this->ID = ID;
 	}
 
 	inline virtual ~Contour()
@@ -52,7 +51,6 @@ public:
 	unsigned int numberVertices;
 	float* vertices;
 	float* colors;
-	unsigned int ID;
 };
 
 // @see http://stackoverflow.com/questions/12008059/find-if-and-stdpair-but-just-one-element
@@ -108,7 +106,7 @@ public:
 	* @param ID of picked contour
 	* @return the height of the picked contour
 	*/
-	unsigned int updatePickedContour(unsigned int IDs[], int numberHits);
+	void updatePickedContour(unsigned int hitIndex);
 
 private:
 	Palette* _palette;
@@ -128,17 +126,6 @@ private:
 	unsigned int _rows;
 	int _maxHeight;
 	int _minHeight;
-
-	/*
-	* Mapping a unique ID to a contour. 
-	* 
-	* Note that even if this is a second data structure, other than _contoursData,
-	* keeping track of the Contours, there is no much overhead in memory usage
-	* since only pointers to contours are stored in these data structures. 
-	*/
-	std::map < unsigned int, Contour* > _idToContours;
-
-	unsigned int _nextID;
 
 	/*
 	* Add contours if necessary

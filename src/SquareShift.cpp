@@ -299,28 +299,27 @@ void mouse(int button, int state, int x, int y)
 }
 
 /*  
- * processPicks prints out the contents of the
- * selection array
- * 
- * Note: this is the exact same function used in practical 2.
+ * Note: this is the exact same method used in practical 2.
  *
- * Note: Maybe coordinates x, y not needed
+ * Note: This method would not work for heights < 0,
+ * 		unless index is changed to GLint*
  */
 void processPicks(GLint hits, GLuint buffer[], int x, int y)
 {
-        GLuint* index = (GLuint *)buffer;
-	unsigned int indices[hits];
-        for (unsigned int i = 0; i < (unsigned int) hits && hits > (int) NO_HITS ; ++i)
-        {
-                index += (int) HITS_OFFSET; // skip zmin and zmax
-		indices[i] = *index;
-                index++; // next hit 
-        }
-	if (hits > (int) NO_HITS) heightLastPicked = contours->updatePickedContour(indices, hits);
+	GLuint* index = (GLuint *)buffer;
+	unsigned int maxHeightHit = 0;
+	for (unsigned int i = 0; i < (unsigned int) hits && hits > (int) NO_HITS ; ++i)
+	{
+		index += (int) HITS_OFFSET; // skip zmin and zmax
+		if (*index > maxHeightHit) maxHeightHit = *index;
+		index++; // next hit 
+	}
+	heightLastPicked = maxHeightHit;
+	if (hits > (int) NO_HITS) contours->updatePickedContour(maxHeightHit);
 }
 
 /*
-* Note: this is the exact same function used in practical 2.
+* Note: this is the exact same method used in practical 2.
 */
 void picking(int x, int y)
 {
@@ -358,25 +357,22 @@ void picking(int x, int y)
 // Menu handling function definition
 void menu(int item)
 {
-        switch (item)
-        {
-        case MENU_COLOR:
-        case MENU_VIEW:
-        case MENU_PRESPECTIVE:
-        case MENU_DOUBLE_CONTOURS:
+	switch (item)
+	{
+	case MENU_COLOR:
+	case MENU_VIEW:
+	case MENU_PRESPECTIVE:
+	case MENU_DOUBLE_CONTOURS:
 	case MENU_HALVE_CONTOURS:
 	case MENU_DYNAMIC_PATH:
-                {
-                        show = (MENU_TYPE) item;
-                }
-                break;
+		show = (MENU_TYPE) item;
+ 		break;
 	case MENU_EXIT: shutDown();
+	break;
+	default: printf("Not valid Menu item \n");
 		break;
-        default: printf("Not valid Menu item \n");
-                break;
-        } // end switch
-
-        glutPostRedisplay();
+	} // end switch
+	glutPostRedisplay();
 }
 
 /**
@@ -452,15 +448,17 @@ Helper::instance().START_PROFILING(PROFILE_FILE);
 	// Create menus and submenus: 
 	// @see http://www.lighthouse3d.com/opengl/glut/index.php3?11
 	int subMenu = glutCreateMenu(menu);
-	glutAddMenuEntry("Hello", MENU_VIEW); // FIXME
+	std::vector< std::string > views = camera->getViewsNames();
+	for (std::vector< std::string >::iterator iter = views.begin(); iter != views.end(); ++iter)
+		glutAddMenuEntry((*iter).c_str(), MENU_VIEW); // FIXME
 
 	glutCreateMenu(menu);
 	 // Add menu items
-        glutAddMenuEntry("Change Color", MENU_COLOR);
-        glutAddSubMenu("Change View", subMenu);
+	glutAddMenuEntry("Change Color", MENU_COLOR);
+	glutAddSubMenu("Change View", subMenu);
 		glutAttachMenu(GLUT_RIGHT_BUTTON);
-        glutAddMenuEntry("Change Perspective", MENU_PRESPECTIVE);
-        glutAddMenuEntry("Double Contours", MENU_DOUBLE_CONTOURS);
+	glutAddMenuEntry("Change Perspective", MENU_PRESPECTIVE);
+	glutAddMenuEntry("Double Contours", MENU_DOUBLE_CONTOURS);
  	glutAddMenuEntry("Halve Contours", MENU_HALVE_CONTOURS);
  	glutAddMenuEntry("Dynamic Path", MENU_DYNAMIC_PATH);
 	glutAddMenuEntry("Exit", MENU_EXIT);
