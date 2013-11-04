@@ -19,6 +19,8 @@ Contours::Contours(int** data, unsigned int columns, unsigned int rows, int minH
 	_palette = new Palette(_minHeight, _maxHeight);
 
 	addContours();
+
+	_pickedOnce = false;
 }
 
 Contours::~Contours()
@@ -111,14 +113,14 @@ void Contours::changeColor()
 	}
 }
 
-/*
-* XXX - if another contour was previously picked, than please 
-* restore its color back
-*/
 void Contours::updatePickedContour(unsigned int hitIndex)
 {
 	Contour* contour = (*std::find_if(_contoursData.begin(),_contoursData.end(), CompareFirst(hitIndex)));
 	contour->colors = getColorArray(contour->numberVertices * 3, hitIndex, true);
+	if (_pickedOnce)
+		_lastPickedContour->colors =  getColorArray(_lastPickedContour->numberVertices * 3, _lastPickedContour->height, false);
+	_pickedOnce = true;
+	_lastPickedContour = contour;
 }
 
 /* --------------- *

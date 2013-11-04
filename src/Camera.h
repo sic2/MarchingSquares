@@ -14,10 +14,6 @@ typedef struct Rotation
 	float x; float y; float z;
 } Rotation;
 
-/*
-* TODO - return pair <string, vector < Rotation> >
-* where string is name of camera
-*/
 class Camera
 {
 public:
@@ -32,7 +28,7 @@ public:
 	* Calculate the next predefined camera location
 	* @return rotations to set the camera to next location
 	*/
-	inline std::vector< Rotation > getNextCameraLocation()
+	inline std::pair< std::string, std::vector< Rotation > > getNextCameraLocation()
 	{
 		_index++;
 		_index = _index % NUMBER_CAMERA_LOCATIONS;
@@ -43,7 +39,7 @@ public:
 	* Calculate the previous predefined camera location
 	* @return rotations to set the camera to prev. location
 	*/
-	inline std::vector< Rotation > getPrevCameraLocation()
+	inline std::pair< std::string, std::vector< Rotation > > getPrevCameraLocation()
 	{
 		_index--;
 		if (_index < 0)
@@ -78,7 +74,7 @@ public:
 	}
 
 	/**
-	* TODO
+	* @return a vector of all the view names (labels)
 	*/
 	inline std::vector< std::string > getViewsNames()
 	{
@@ -89,36 +85,59 @@ public:
 		return retval;
 	}
 
+	inline void addMenuItem(int item, std::string label)
+	{
+		_menuIndices.insert(std::pair<int, std::string>(item, label));
+	}
+
+	inline std::pair< std::string, std::vector< Rotation > > getViewByIndex(int item)
+	{
+		std::string label = _menuIndices.find(item)->second;
+		if(label.compare("Top") == 0)
+		{
+			_index = CAMERA_LOCATION_TWO;
+			return getCameraLocation();
+		}
+		if(label.compare("Front Left") == 0)
+		{
+			_index = CAMERA_LOCATION_ONE;
+			return getCameraLocation();
+		}
+		if(label.compare("Front Right") == 0)
+		{
+			_index = CAMERA_LOCATION_ZERO;
+			return getCameraLocation();
+		}
+			 
+	} 
+
 private:
 	int _index;
 
-	inline std::vector< Rotation > getCameraLocation()
+	inline std::pair< std::string, std::vector< Rotation > > getCameraLocation()
 	{
-		std::vector< Rotation > rotations;
+		std::pair< std::string, std::vector< Rotation > > rotations;
 		Rotation r_0, r_1;
 		switch(_index)
 		{
 			case CAMERA_LOCATION_ZERO: 
-			printf("location 0\n"); // Front Left
+				rotations.first = std::string("Front Right");
 				r_0.angle = -1.47f; r_0.x = 1.0f; r_0.y = 0.0f; r_0.z = 0.0f;
-				rotations.push_back(r_0);
+				rotations.second.push_back(r_0);
 				r_1.angle = -3.14f; r_1.x = 0.0f; r_1.y = 0.0f; r_1.z = 1.0f;
-				rotations.push_back(r_1);
+				rotations.second.push_back(r_1);
 			break;
 			case CAMERA_LOCATION_ONE:
-			printf("location 1\n");  // Front rigth
+				rotations.first = std::string("Front Left");
 				r_0.angle = -1.47f; r_0.x = 1.0f; r_0.y = 0.0f; r_0.z = 0.0f;
-				rotations.push_back(r_0);
+				rotations.second.push_back(r_0);
 				r_1.angle = -1.47f; r_1.x = 0.0f; r_1.y = 0.0f; r_1.z = 1.0f;
-				rotations.push_back(r_1);
+				rotations.second.push_back(r_1);
 			break;
 			case CAMERA_LOCATION_TWO: // TOP VIEW
-			printf("location 2\n");
-				r_0.angle = 0.0f;
-				r_0.x = 0.0f;
-				r_0.y = 0.0f;
-				r_0.z = 0.0f;
-				rotations.push_back(r_0);
+				rotations.first = std::string("Top");
+				r_0.angle = 0.0f; r_0.x = 0.0f; r_0.y = 0.0f; r_0.z = 0.0f;
+				rotations.second.push_back(r_0);
 			break;
 			default:
 				printf("unknown camera location\n");
@@ -127,4 +146,6 @@ private:
 
 		return rotations;
 	}
+
+	std::map<int , std::string > _menuIndices;
 };

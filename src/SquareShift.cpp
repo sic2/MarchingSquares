@@ -72,7 +72,7 @@ int heightLastPicked = 0.0f;
 // Application objects
 Contours* contours;
 Camera* camera;
-std::vector< Rotation > rotations;
+std::pair< std::string, std::vector< Rotation > > rotations;
 std::vector< Rotation > dynamicPath;
 
 // Model position values
@@ -94,16 +94,15 @@ unsigned int pickBuffer[PICK_BUFFER_SIZE];
 // Menu items
 enum MENU_TYPE
 {
-        MENU_COLOR,
-        MENU_VIEW,
-        MENU_PRESPECTIVE,
-        MENU_DOUBLE_CONTOURS,
+	MENU_COLOR,
+	MENU_PRESPECTIVE,
+	MENU_DOUBLE_CONTOURS,
 	MENU_HALVE_CONTOURS,
 	MENU_DYNAMIC_PATH,
-	MENU_EXIT
+	MENU_EXIT,
+	MENU_VIEW // Number of items in menu view specified by numberViews
 };
-// Assign a default value
-MENU_TYPE show = MENU_COLOR;
+unsigned int numberViews;
 
 /*
 * Preprocessors
@@ -138,7 +137,7 @@ void display()
 {
 	glPushMatrix();
 
-	if (!useDynamicPathView) // TODO - cleanup logic
+	if (!useDynamicPathView)
 	{
 		if (!useOrthoProj)
 		{
@@ -154,8 +153,8 @@ void display()
 		}
 		else
 		{
-			for (std::vector< Rotation >::iterator iter = rotations.begin(); 
-			iter != rotations.end(); ++iter)
+			for (std::vector< Rotation >::iterator iter = rotations.second.begin(); 
+			iter != rotations.second.end(); ++iter)
 			{
 				glRotatef(RADIANS_TO_DEGREES * iter->angle, iter->x, iter->y, iter->z);
 			}
@@ -357,21 +356,32 @@ void picking(int x, int y)
 // Menu handling function definition
 void menu(int item)
 {
-	switch (item)
+	if (item >= MENU_VIEW)
 	{
-	case MENU_COLOR:
-	case MENU_VIEW:
-	case MENU_PRESPECTIVE:
-	case MENU_DOUBLE_CONTOURS:
-	case MENU_HALVE_CONTOURS:
-	case MENU_DYNAMIC_PATH:
-		show = (MENU_TYPE) item;
- 		break;
-	case MENU_EXIT: shutDown();
-	break;
-	default: printf("Not valid Menu item \n");
+		rotations = camera->getViewByIndex(item);
+		usePredefinedCamera = true;
+	}
+	else
+	{
+		switch (item)
+		{
+		case MENU_COLOR: contours->changeColor();
+			break;
+		case MENU_PRESPECTIVE: useOrthoProj = !useOrthoProj; setup(width, height);
+			break;
+		case MENU_DOUBLE_CONTOURS: contours->changeNumberContours(true);
+			break;
+		case MENU_HALVE_CONTOURS: contours->changeNumberContours(false);
+			break;
+		case MENU_DYNAMIC_PATH: dynamicPath = camera->getDynamicPath(); useDynamicPathView = true;
+	 		break;
+		case MENU_EXIT: shutDown();
 		break;
-	} // end switch
+		default: printf("Not valid Menu item \n");
+			break;
+		} // end switch
+	}
+	
 	glutPostRedisplay();
 }
 
@@ -449,8 +459,14 @@ Helper::instance().START_PROFILING(PROFILE_FILE);
 	// @see http://www.lighthouse3d.com/opengl/glut/index.php3?11
 	int subMenu = glutCreateMenu(menu);
 	std::vector< std::string > views = camera->getViewsNames();
+	numberViews = views.size();
+	int i = 0;
 	for (std::vector< std::string >::iterator iter = views.begin(); iter != views.end(); ++iter)
-		glutAddMenuEntry((*iter).c_str(), MENU_VIEW); // FIXME
+	{
+		glutAddMenuEntry((*iter).c_str(), MENU_VIEW + i);
+		camera->addMenuItem(MENU_VIEW + i, (*iter).c_str());
+		i++;
+	}
 
 	glutCreateMenu(menu);
 	 // Add menu items

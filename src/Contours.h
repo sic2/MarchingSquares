@@ -120,6 +120,8 @@ private:
 	* Vector of (height, (number of vertices, vertices))
 	*/
 	std::vector< Contour* > _contoursData;
+	Contour* _lastPickedContour;
+	bool _pickedOnce; // False is no contour has ever been picked
 
 	unsigned int _numberContours;
 	unsigned int _columns;

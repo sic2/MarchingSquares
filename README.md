@@ -47,9 +47,6 @@ Generate gif callgraph
 # TODO
 
 	[/] Create an extended set of predefined locations of the camera
-	[] Create menus
-	[] Info panel
-	[] Be able to pick a contour, color it and display info about it
 
 # Known bugs
 
