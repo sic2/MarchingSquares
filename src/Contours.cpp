@@ -1,6 +1,7 @@
 #include "Contours.h"
 
 #include <algorithm>
+#include <climits>
 
 #define INITIAL_NUMBER_CONTOURS 8
 
@@ -85,9 +86,9 @@ void Contours::draw()
 		glColorPointer(3, GL_FLOAT, 0, contour->colors);
 		glVertexPointer(3, GL_FLOAT, 0, contour->vertices);
 
-		// glPushName(ID); -- TODO
+		glPushName(contour->ID);
 		glDrawArrays(GL_LINES, 0, contour->numberVertices);
-		// glPopName();
+		glPopName();
 	}
 	glDisableClientState( GL_COLOR_ARRAY );
 	glDisableClientState( GL_VERTEX_ARRAY );
@@ -101,7 +102,7 @@ void Contours::changeColor()
 	float RED, GREEN, BLUE;
 	for(std::vector< Contour* >::iterator iter = _contoursData.begin(); iter != _contoursData.end(); ++iter)
 	{
-		Color* color = _palette->getColor((*iter)->height);
+		Color* color = _palette->getColor((*iter)->height, false);
 		RED = color->red; GREEN = color->green; BLUE = color->blue;
 		float* colors = (*iter)->colors;
 		for(unsigned int i = 0; i < (*iter)->numberVertices * 3; i += 3)
@@ -111,6 +112,26 @@ void Contours::changeColor()
 			colors[i + 2] = BLUE;
 		}
 	}
+}
+
+/*
+* XXX - if another contour was previously picked, than please 
+* restore its color back
+*/
+unsigned int Contours::updatePickedContour(unsigned int IDs[], int numberHits)
+{
+	Contour* contour;
+	int maxHeight = INT_MIN;
+	for (int i = 0; i < numberHits; i++)
+	{
+		if (_idToContours.find(IDs[0])->second->height > maxHeight)
+		{
+			contour = _idToContours.find(IDs[0])->second;
+			maxHeight = _idToContours.find(IDs[0])->second->height;
+		}
+	}
+	contour->colors = getColorArray(contour->numberVertices * 3, contour->height, true); // FIXME
+	return contour->height;
 }
 
 /* --------------- *
@@ -141,18 +162,9 @@ void Contours::addContours()
 
 		/*
 		* Initialise color array for this contour
-		* This contour will have always the same color. 
+		* This contour will have always the same color (unless it is picked) 
 		*/
-		float* colors = new float[totalNumberVertices_X3];
-		float RED, GREEN, BLUE;
-		Color* color = _palette->getColor(height);
-		RED = color->red; GREEN = color->green; BLUE = color->blue;
-		for(i = 0; i < totalNumberVertices_X3; i += 3)
-		{
-			colors[i] = RED;
-			colors[i + 1] = GREEN;
-			colors[i + 2] = BLUE;
-		}
+		float* colors = getColorArray(totalNumberVertices_X3, height, false);
 
 		/*
 		* Initialise and populate vertices array for this contour
@@ -181,8 +193,12 @@ void Contours::addContours()
 				  CASE, i, j, value_ij, value_i1j, value_i1j1, value_ij1);
 			totalNumberCoordinates += numberVertices(CASE) * 3;
 		}
-
-		_contoursData.push_back(new Contour(height, totalNumberVertices, vertices, colors));
+	
+		unsigned int ID = this->_nextID++;
+		Contour* contour = new Contour(height, totalNumberVertices, vertices, colors, ID);
+		_contoursData.push_back(contour);
+		_idToContours.insert(std::pair< unsigned int, Contour* >(ID, contour));
+		
 	}
 }
 
@@ -195,10 +211,27 @@ void Contours::removeContours()
 	if (half % 2 != 0) ++half; // Correct division of odd numbers
   	for(std::vector< Contour* >::iterator iter = _contoursData.begin() + half; 
 		iter != _contoursData.end(); ++iter)
-	{
+	{	
+		unsigned int ID = (*iter)->ID;
+		_idToContours.erase(ID);
 		delete (*iter);
 	}
 	_contoursData.erase(_contoursData.begin() + half, _contoursData.end());
+}
+
+float* Contours::getColorArray(unsigned int totalNumberVertices_X3, int height, bool invertColor)
+{
+	float* colors = new float[totalNumberVertices_X3];
+	float RED, GREEN, BLUE;
+	Color* color = _palette->getColor(height, invertColor);
+	RED = color->red; GREEN = color->green; BLUE = color->blue;
+	for(unsigned int i = 0; i < totalNumberVertices_X3; i += 3)
+	{
+		colors[i] = RED;
+		colors[i + 1] = GREEN;
+		colors[i + 2] = BLUE;
+	}
+	return colors;
 }
 
 unsigned int Contours::cell(unsigned int height, double a, double b, double c , double d)

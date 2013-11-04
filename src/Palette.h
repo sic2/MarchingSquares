@@ -65,7 +65,7 @@ public:
 	* @param height of the contour
 	* @return color
 	*/
-	inline Color* getColor(int height)
+	inline Color* getColor(int height, bool invertColor)
 	{
 		float scaledHeight = height * scalingFactor / _maxHeight;
 
@@ -73,7 +73,9 @@ public:
 		float red = 0.0f; 
 		float green = 0.0f; 
 		float blue = 0.0f;
-
+		
+		if (!invertColor)
+		{
 		switch(_index)
 		{
 			case STANDARD_COLOR_SCALE:
@@ -122,6 +124,32 @@ public:
 			default:
 				printf("palette index unknown\n");
 			break;
+		} // end switch
+		}
+		else
+		{
+			switch(_index)
+			{
+				case STANDARD_COLOR_SCALE:
+				red = green = blue = 1.0f;
+				color = new Color(red, green, blue);
+			break;
+			case RED_BLUE_COLOR_SCALE:
+				green = 1.0f;
+				color = new Color(red, green, blue);
+			break;
+			case GREY_COLOR_SCALE:
+				red = 1.0f;
+				color = new Color(red, green, blue);
+			break;
+			case CARTO_COLOR_SCALE:
+				red = green = blue = 1.0f;
+				color = new Color(red, green, blue);
+				break;
+			default:
+				printf("palette index unknown\n");
+			break;
+			} // end switch
 		}
 		if (!_justConstructed)
 			delete _color;

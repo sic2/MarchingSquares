@@ -41,10 +41,7 @@
 * Picking constants
 */
 #define PICK_TOLLERANCE 5
-// Keep the pick buffer small, since not many objects will probably be drawn 
-// for a small area as defined by 
-// PICK_TOLLERANCE * PICK_TOLLERANCE
-#define PICK_BUFFER_SIZE 16
+#define PICK_BUFFER_SIZE 128
 #define NO_HITS 0
 #define HITS_OFFSET 3
 
@@ -70,6 +67,7 @@ unsigned int rows;
 unsigned int columns;
 int minHeight;
 int maxHeight;
+int heightLastPicked = 0.0f;
 
 // Application objects
 Contours* contours;
@@ -88,10 +86,24 @@ bool usePredefinedCamera = false;
 bool useDynamicPathView = false;
 
 // Window dimensions
-int width, height;
+int width = 500; int height = 500;
 
 // Picking
 unsigned int pickBuffer[PICK_BUFFER_SIZE];
+
+// Menu items
+enum MENU_TYPE
+{
+        MENU_COLOR,
+        MENU_VIEW,
+        MENU_PRESPECTIVE,
+        MENU_DOUBLE_CONTOURS,
+	MENU_HALVE_CONTOURS,
+	MENU_DYNAMIC_PATH,
+	MENU_EXIT
+};
+// Assign a default value
+MENU_TYPE show = MENU_COLOR;
 
 /*
 * Preprocessors
@@ -102,6 +114,7 @@ void myReshape(int w, int h);
 void keyboardFunc(unsigned char key, int x, int y);
 void specialFunc(int key, int x, int y);
 void mouse(int button, int state, int x, int y);
+void menu(int);
 
 // Projections
 void orthoProj(int w, int h);
@@ -167,6 +180,10 @@ void display()
 	
 	// Textual information
 	Helper::instance().displayText(TEXT_POSITION_X, TEXT_POSITION_Y, "#Contours: %i", contours->getNumberContours());
+	Helper::instance().displayText(TEXT_POSITION_X - 0.9, TEXT_POSITION_Y, "#Height Last Picked: %i", heightLastPicked);
+	
+	std::string MODE = useOrthoProj ? std::string("ORTHO") : std::string("PRESPECTIVE");
+	Helper::instance().displayText(TEXT_POSITION_X - 0.9, -1.0f * TEXT_POSITION_Y, MODE.c_str());
 	glFlush();
 }
 
@@ -286,27 +303,20 @@ void mouse(int button, int state, int x, int y)
  * selection array
  * 
  * Note: this is the exact same function used in practical 2.
+ *
+ * Note: Maybe coordinates x, y not needed
  */
 void processPicks(GLint hits, GLuint buffer[], int x, int y)
 {
-	if (hits > (int) NO_HITS)
-	{
-		// elementIsPicked = true;
-	}
-	GLuint items;
-	GLuint *index;
-
-	index = (GLuint *)buffer;
-	for (unsigned int i = 0; i < (unsigned int) hits; ++i)
-	{ 
-		items = *index;
-		index += (int) HITS_OFFSET; // skip zmin and zmax
-		for (unsigned int j = 0; j < items; ++j)
-		{ 
-			// _sketchEnvironment.processPick((*index), x, y, coordinatesTransform(x, y));
-			index++; // next hit
-		}
-	}
+        GLuint* index = (GLuint *)buffer;
+	unsigned int indices[hits];
+        for (unsigned int i = 0; i < (unsigned int) hits && hits > (int) NO_HITS ; ++i)
+        {
+                index += (int) HITS_OFFSET; // skip zmin and zmax
+		indices[i] = *index;
+                index++; // next hit 
+        }
+	if (hits > (int) NO_HITS) heightLastPicked = contours->updatePickedContour(indices, hits);
 }
 
 /*
@@ -327,16 +337,46 @@ void picking(int x, int y)
 	glLoadIdentity();
 
 	gluPickMatrix((GLdouble) x, (GLdouble) (viewport[3] - y), PICK_TOLLERANCE, PICK_TOLLERANCE, viewport);
-	gluOrtho2D(-1.0, 1.0, -1.0, 1.0); // FIXME
-
-	//redrawAllElements = true;
-	//displayFunc();
+	
+	if (width <= height)
+	{
+		gluOrtho2D(X_MIN, X_MAX, Y_MIN * (GLfloat) height / (GLfloat) width, Y_MAX * (GLfloat) height / (GLfloat) width);
+	}
+	else
+	{
+		gluOrtho2D(X_MIN * (GLfloat) width / (GLfloat) height, X_MAX * (GLfloat) width / (GLfloat) height, Y_MIN, Y_MAX);
+	}
+	display();
 
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();
 	glFlush();
 
 	processPicks(glRenderMode(GL_RENDER), pickBuffer, x, y);
+}
+
+// Menu handling function definition
+void menu(int item)
+{
+        switch (item)
+        {
+        case MENU_COLOR:
+        case MENU_VIEW:
+        case MENU_PRESPECTIVE:
+        case MENU_DOUBLE_CONTOURS:
+	case MENU_HALVE_CONTOURS:
+	case MENU_DYNAMIC_PATH:
+                {
+                        show = (MENU_TYPE) item;
+                }
+                break;
+	case MENU_EXIT: shutDown();
+		break;
+        default: printf("Not valid Menu item \n");
+                break;
+        } // end switch
+
+        glutPostRedisplay();
 }
 
 /**
@@ -399,8 +439,7 @@ Helper::instance().START_PROFILING(PROFILE_FILE);
 
 	glutInit(&argc, argv);
 
-	glutInitWindowSize(500, 500);
-	width = 500; height = 500; // XXX - Use constants
+	glutInitWindowSize(width, height);
 	glutCreateWindow(fileName.c_str());
 
 	// Registering callbacks
@@ -409,6 +448,25 @@ Helper::instance().START_PROFILING(PROFILE_FILE);
 	glutKeyboardFunc(keyboardFunc);
 	glutSpecialFunc(specialFunc);
 	glutMouseFunc(mouse);
+
+	// Create menus and submenus: 
+	// @see http://www.lighthouse3d.com/opengl/glut/index.php3?11
+	int subMenu = glutCreateMenu(menu);
+	glutAddMenuEntry("Hello", MENU_VIEW); // FIXME
+
+	glutCreateMenu(menu);
+	 // Add menu items
+        glutAddMenuEntry("Change Color", MENU_COLOR);
+        glutAddSubMenu("Change View", subMenu);
+		glutAttachMenu(GLUT_RIGHT_BUTTON);
+        glutAddMenuEntry("Change Perspective", MENU_PRESPECTIVE);
+        glutAddMenuEntry("Double Contours", MENU_DOUBLE_CONTOURS);
+ 	glutAddMenuEntry("Halve Contours", MENU_HALVE_CONTOURS);
+ 	glutAddMenuEntry("Dynamic Path", MENU_DYNAMIC_PATH);
+	glutAddMenuEntry("Exit", MENU_EXIT);
+
+        // Associate a mouse button with menu
+        glutAttachMenu(GLUT_RIGHT_BUTTON);
 
 	glClearColor(0.0,0.0,0.0,1.0);
 	glColor3f(1.0,1.0,1.0);

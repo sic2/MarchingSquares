@@ -33,12 +33,13 @@
 class Contour
 {
 public:
-	inline Contour(int height, unsigned int numberVertices, float* vertices, float* colors)
+	inline Contour(int height, unsigned int numberVertices, float* vertices, float* colors, unsigned int ID)
 	{
 		this->height = height; 
 		this->numberVertices = numberVertices;
 		this->vertices = vertices;
 		this->colors = colors;
+		this->ID = ID;
 	}
 
 	inline virtual ~Contour()
@@ -51,6 +52,7 @@ public:
 	unsigned int numberVertices;
 	float* vertices;
 	float* colors;
+	unsigned int ID;
 };
 
 // @see http://stackoverflow.com/questions/12008059/find-if-and-stdpair-but-just-one-element
@@ -106,7 +108,7 @@ public:
 	* @param ID of picked contour
 	* @return the height of the picked contour
 	*/
-	unsigned int updatePickedContour(unsigned int ID);
+	unsigned int updatePickedContour(unsigned int IDs[], int numberHits);
 
 private:
 	Palette* _palette;
@@ -147,6 +149,13 @@ private:
 	* Remove contours if necessary.
 	*/
 	void removeContours();
+
+	/*
+	* Create a color array for a contour
+	* @param
+	* @param
+	*/
+	float* getColorArray(unsigned int totalNumberVertices_X3, int height, bool invertColor);
 
 	/**
 	* Returns the number of vertices for a given marching square case
