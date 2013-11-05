@@ -2,6 +2,8 @@
 
 Square Shift is a 2.5D contours modelling viewer. 
 
+![alt text](https://github.com/sic2/MarchingSquares/blob/master/Other/example.png?raw=true "Honolulu")
+
 ======================================
 
 # How to compile and run the program:
